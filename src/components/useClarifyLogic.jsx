@@ -194,7 +194,7 @@ const useClarifyLogic = (props) => {
 
                 // updating the list of objects
                 if (currentAction == 'delete' || currentAction == 'force') {
-                    setNotes(prev => prev.filter(note => note.id !== currentId))
+                    props.setNotes(prev => prev.filter(note => note.id !== currentId))
                 }
 
                 

@@ -200,7 +200,7 @@ function User() {
                         visibility={emailEdited}
                     >
                         <p
-                            className='name-unsaved'
+                            className='name-status'
                         >
                             {t('Email unsaved')}
                         </p>
@@ -209,7 +209,7 @@ function User() {
                         visibility={prohibited}
                     >
                         <p
-                            className='name-unsaved'
+                            className='name-status'
                         >
                             {t('Email editing is not yet available')}
                         </p>

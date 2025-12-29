@@ -50,6 +50,8 @@ button {
     border-radius: 1.5vw;
     border: 0.1vw solid var(--blck-bc-hvr);
     flex-direction: column;
+    overflow-y: scroll;
+    height: 100%;
 
     /* TABLET */
     @media (min-width: 769px) and (max-width: 1024px) {
@@ -568,8 +570,9 @@ button:focus {
 }
 
 .settings-title {
-    margin: 1vw 0vw;
+    padding: 1vw 0vw 0vw;
     text-wrap: nowrap;
+    margin: 0;
 
     @media (max-width: 1024px) {
         font-size: 8vw;
@@ -1585,4 +1588,45 @@ button:focus {
     @media (max-width: 1024px) {
         border: 1vw solid transparent;
     }
+}
+
+.settings-offline-mode {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.5vw;
+    padding: 1vw;
+    margin: 1vw 0vw;
+    height: 4vw;
+    border: 0.25vw solid var(--blck-bc-hvr);
+    border-radius: 1vw;
+    cursor: pointer;
+}
+
+.settings-offline-checkbox {
+    width: 3vw;
+    height: 3vw;
+    border-radius: 25%;
+    border: 0.1vw solid var(--blck-bc-fcs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 300ms background-color, 300ms border;
+    cursor: pointer;
+}
+
+.settings-offline-checkbox:hover,
+.settings-offline-checkbox:focus {
+    border: 0.1vw solid var(--def-white);
+}
+
+.settings-offline-logo {
+    opacity: 0;
+    width: 2.5vw;
+    height: 2.5vw;
+    transition: 300ms opacity;
+}
+
+.settings-offline-techbox:checked + .settings-offline-logo {
+    opacity: 1;
 }

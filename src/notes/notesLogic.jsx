@@ -41,17 +41,26 @@ function notesLogic(props) {
     )
 
     useEffect(() => {
+        console.log('notes updated on NotesPage', notes)
+    }, [notes])
+
+    useEffect(() => {
         if (online) {
             setOfflineMode(false)
-            token && getNotes()
+            // token && getNotes()
             !token && setNotesLoading(false)
+            setNotesLoading(false)
         }
 
         if (!online && !offlineMode) {
             console.log('нет инета и оффлайн режима')
-            setNotesError(true)
-            setNotesMessage('No internet connection')
-            setNotesLoading(false)
+            if (Cookies.get('offline') != 'true') {
+                setNotesError(true)
+                setNotesMessage('No internet connection')
+                setNotesLoading(false)
+                return
+            }
+            setOfflineMode(true)
         }
 
         if (offlineMode) {
@@ -163,7 +172,7 @@ function notesLogic(props) {
     }}
 
     useEffect(() => {
-        if (online && token) getNotes()
+        // if (online && token) getNotes()
     },[category, tag, search])
 
     const openAnim = (action) => {

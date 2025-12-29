@@ -1154,3 +1154,13 @@
 .--loading .newnote-markdown-checkbox:hover {
     border-color: var(--blck-bc-fcs) !important;
 }
+
+.newnote-offline-mode {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    font-size: 1.5vw;
+    padding: 1vw;
+    cursor: pointer;
+    color: white;
+}

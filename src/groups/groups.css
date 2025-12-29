@@ -623,7 +623,6 @@
 .groups-loading-error {
     display: flex;
     flex-direction: column;
-    gap: 2vw;
     align-items: center;
     cursor: pointer;
     padding-bottom: 2vw;

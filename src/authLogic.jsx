@@ -20,7 +20,7 @@ function authLogic() {
     const path = location.pathname.slice(1)
 
     const {setNotesError, setNotesLoading, setNotesMessage, setSavings} = clarifyStore()
-    const {setNotes} = appStore()
+    const {setNotes, setTags, setCategories} = appStore()
 
     // send data to the server for login or registration
     const submitRequest = async () => {
@@ -54,40 +54,51 @@ function authLogic() {
             ? saved.map(([key, value]) => localStorage.setItem(key, value))
             : saved.map(([key, value]) => Cookies.set(key, value, {expires: 1}))
 
-        getNotes(resData.token)
+        getData(resData.token)
         navigate('/notes')
 
         } catch {
             setServerError(true)
             }
-        }
+    }
 
-    const getNotes = async (token) => {
+    const endpoints = [
+        {key: 'categories', setter: setCategories},
+        {key: 'tags', setter: setTags},
+        {key: 'notes', setter: setNotes},
+    ]
+
+    const getData = async (token) => {
         try {
             setNotesLoading(true)
             setNotesError(false)
 
-        const res = await fetch(
-        `http://api.notevault.pro/api/v1/notes`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: `Bearer ${token}`,
-            },
-        })
+            const fetchPromises = endpoints.map(endpoint =>
+                fetch(`http://api.notevault.pro/api/v1/${endpoint.key}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        authorization: `Bearer ${token}`,
+                    },
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`Error loading ${endpoint.key}`)
+                    return res.json()
+                })
+                .then(resData => {
+                    endpoint.setter(endpoint.key !== 'notes' ? resData : resData.data)
+                    setSavings(prev => ({...prev, [endpoint.key]: false}))
+                })
+            )
 
-        if (!res.ok) throw new Error('Error loading notes')
-        const resData = await res.json()
-        setNotes(resData.data)
-        setSavings(prev => ({...prev, [path]: false}))
-        setNotesLoading(false)
-    } catch (error) {
-        setNotesMessage(error.message)
-        setNotesLoading(false)
-        setNotesError(true)
+            await Promise.all(fetchPromises)
+
+            setNotesLoading(false)
+        } catch (error) {
+            setNotesMessage(error.message)
+            setNotesLoading(false)
+            setNotesError(true)
     }}
-
 
     // four states to fill values in the inputs
     const [name, setName] = useState('')

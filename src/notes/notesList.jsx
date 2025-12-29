@@ -1,13 +1,14 @@
 import './notesList.css'
+import Cookies from 'js-cookie'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {useMemo} from 'react'
+import {useState, useMemo} from 'react'
 import ContentLoader from 'react-content-loader'
 import {Link, useLocation} from 'react-router'
 import MDEditor from '@uiw/react-md-editor'
 import {useTranslation} from 'react-i18next'
 
-import {faBoxArchive as faBoxArchiveSolid, faTrash as faTrashSolid, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faBoxOpen, faSignal, faServer, faTowerBroadcast} from '@fortawesome/free-solid-svg-icons'
+import {faPlaneCircleCheck, faBoxArchive as faBoxArchiveSolid, faTrash as faTrashSolid, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faBoxOpen, faSignal, faServer, faTowerBroadcast} from '@fortawesome/free-solid-svg-icons'
 
 import {appStore, clarifyStore, notesViewStore, pendingStore} from '../store'
 
@@ -27,6 +28,8 @@ function NotesList(props) {
 
     // global state that stores the display view of notes
     const {notesView} = notesViewStore()
+    
+    const [offline, setOffline] = useState(Cookies.get('offline') == 'true')
 
     const {
         action, notesError,
@@ -303,6 +306,33 @@ function NotesList(props) {
                                 {t('Go to offline mode?')}
                             </span>
                         </div>
+                        <label
+                            className='newnote-offline-mode'
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div
+                                className='settings-offline-title'
+                            >
+                                {t('Automatically switch to offline mode')}
+                            </div>
+                            <div
+                                className='settings-offline-checkbox'
+                            >
+                                <input
+                                    type='checkbox'
+                                    className='settings-offline-techbox'
+                                    checked={offline}
+                                    onChange={e => {
+                                        setOffline(e.target.checked)
+                                        Cookies.set('offline', e.target.checked, {expires: 1})
+                                    }}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faPlaneCircleCheck}
+                                    className='settings-offline-logo'
+                                />
+                            </div>
+                        </label>
                     </SlideDown>
                 </div>
             </SlideDown>

@@ -1,5 +1,5 @@
-import {useState, useRef, useEffect} from 'react'
-import {useLocation, useNavigate, useParams} from 'react-router'
+import {useState, useRef, useEffect, useMemo} from 'react'
+import {useLocation, useNavigate} from 'react-router'
 import Cookies from 'js-cookie'
 
 import {apiStore, appStore} from '../store'
@@ -12,8 +12,7 @@ function NoteEditor() {
     const navigate = useNavigate()
     const {online} = apiStore()
     
-    const {offlineMode, setOfflineMode, offlineCategories, offlineTags, setNotes, addOfflineActions, notes, setIsSyncing} = appStore()
-    const {id} = useParams()
+    const {offlineMode, setOfflineMode, offlineCategories, offlineTags, setNotes, addOfflineActions, notes, setIsSyncing, categories, setCategories, tags, setTags} = appStore()
 
     const token = [
             localStorage.getItem('token'),
@@ -25,6 +24,13 @@ function NoteEditor() {
         )
     
     const {createNote, getNote, editNote, getTags, getCategories} = useApi(token)
+    
+    const catsDisabled = useMemo(
+        () => (categories?.length ?? 0) === 0,
+        [categories]
+    )
+
+    const placeholder = catsDisabled ? {name: 'No categories created'} : {name: 'Category not selected'}
 
     // creating new note
     const newNote = async () => {
@@ -103,12 +109,11 @@ function NoteEditor() {
     }
 
     const modifyNote = async () => {
-        const currentId = location.state
         if (offlineMode || !online) {
             const tempId = Date.now()
             setNotes(notes =>
                 notes.map(n =>
-                    (n.id == currentId || (n.tempId && n.tempId == currentId))
+                    (n.id == location.state || (n.tempId && n.tempId == location.state))
                     ? {
                         ...n,
                         ...noteData, 
@@ -149,7 +154,7 @@ function NoteEditor() {
             setNote(prev => ({
                 ...prev,
                 name: resData.title,
-                category: resData.category ?? { name: 'Category not selected' },
+                category: resData.category ?? placeholder,
                 content: resData.content,
                 markdown: resData.is_markdown === 1,
                 selectedTags: resData.tags
@@ -167,8 +172,14 @@ function NoteEditor() {
     const loadTags = async () => {
         try {
             const tags = await getTags()
+            setTags(tags)
             setNote(prev => ({...prev, tags}))
-            setVisibility(v => ({...v, tags: true}))
+            setVisibility(v => ({...v, tags: true}));
+            (tags?.length ?? 0 === 0) &&
+                setErrors(prev => ({
+                    ...prev,
+                    tagsMessage: 'No tags created'
+            }))
         } catch {
             setErrors(prev => ({
                 ...prev,
@@ -180,10 +191,11 @@ function NoteEditor() {
     const loadCats = async () => {
         try {
             const categories = await getCategories()
+            setCategories(categories)
             setNote(prev => ({
                 ...prev,
                 categories,
-                category: {name: 'Category not selected'}
+                category: placeholder
             }))
         } catch {
             setErrors(prev => ({
@@ -191,7 +203,6 @@ function NoteEditor() {
                 categories: true
             }))
     }}
-
     
     // 
     const inputRef = useRef(null)
@@ -288,7 +299,7 @@ function NoteEditor() {
     const turnOfflineMode = () => {
         setNote(prev => ({
                 ...prev,
-                category: {name: 'Category not selected'},
+                category: placeholder,
                 categories: offlineCategories,
                 tags: offlineTags
             }))
@@ -314,7 +325,7 @@ function NoteEditor() {
                     ...prev,
                     name: offlineNote.title,
                     categories: offlineCategories,
-                    category: offlineNote.category ?? {name: 'Category not selected'},
+                    category: offlineNote.category ?? placeholder,
                     content: offlineNote.content,
                     markdown: offlineNote.is_markdown == 1,
                     tags: offlineTags,
@@ -326,7 +337,10 @@ function NoteEditor() {
     const turnOnlineMode = () => {
         setErrors(prev => ({
                 ...prev,
-                global: false
+                global: false,
+                categories: false,
+                tags: false,
+                tagsMessage: 'No tags created'
             }))
 
         setOfflineMode(false)
@@ -337,7 +351,7 @@ function NoteEditor() {
             setLoading(false)
             setNote(prev => ({
                 ...prev,
-                category: {name: 'No categories created'}
+                category: placeholder
             }))
             setErrors(prev => ({
                 ...prev,
@@ -349,14 +363,18 @@ function NoteEditor() {
     // triggers the function execution on the first load; checked whether the id is transmitted
     useEffect(() => {
         if (!online && !offlineMode) {
-            setGeneralError(true)
+            if (Cookies.get('offline') != 'true') {
+                setGeneralError(true)
+                return
+            }
+            setOfflineMode(true)
         }
 
         if (offlineMode) {
             turnOfflineMode()
             setNote(prev => ({
                 ...prev,
-                category: {name: 'Category not selected'}
+                category: placeholder
             }))
         }
 
@@ -416,7 +434,7 @@ function NoteEditor() {
         setNote(prev => ({
             ...prev,
             name: '',
-            category: {name: 'Category not selected'},
+            category: placeholder,
             content: '',
             markdown: false,
             selectedTags: []

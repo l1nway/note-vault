@@ -16,12 +16,18 @@ export const appStore = create(
       offlineActions: [],
       isSyncing: false,
       notes: [],
+      tags: [],
+      categories: [],
 
       setOnline: (status) => set({ online: status }),
       setOfflineMode: (status) => set({ offlineMode: status }),
       setIsSyncing: (v) => set({ isSyncing: v }),
       setNotes: (fn) =>
-        typeof fn === 'function' ? set(state => ({ notes: fn(state.notes) })) : set({ notes: fn }),
+        typeof fn == 'function' ? set(state => ({notes: fn(state.notes)})) : set({notes: fn}),
+      setTags: (fn) =>
+        typeof fn == 'function' ? set(state => ({tags: fn(state.tags)})) : set({tags: fn}),
+      setCategories: (fn) =>
+        typeof fn == 'function' ? set(state => ({categories: fn(state.categories)})) : set({categories: fn}),
 
       addOfflineActions: (action) =>
         set(state => ({
@@ -36,14 +42,14 @@ export const appStore = create(
       updateOfflineActionId: (tempId, realId) =>
         set(state => ({
           offlineActions: state.offlineActions.map(action => {
-            if (action.type === 'edit' && (action.payload.id === tempId || action.payload.tempId === tempId)) {
-              return { ...action, payload: { ...action.payload, id: realId } }
+            if (action.type == 'edit' && (action.payload.id == tempId || action.payload.tempId == tempId)) {
+              return { ...action, payload: {...action.payload, id: realId}}
             }
             return action
           }),
         })),
     }),
-    { name: 'app-storage' }
+    {name: 'app-storage'}
   )
 )
 

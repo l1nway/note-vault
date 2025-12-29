@@ -1,10 +1,12 @@
 import './newNote.css'
+import Cookies from 'js-cookie'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {useTranslation} from 'react-i18next'
 import {useLocation} from 'react-router'
+import {useState} from 'react'
 
-import {faArrowUp as faArrowUpSolid, faFloppyDisk, faXmark, faTriangleExclamation, faSpinner, faRotateRight, faSignal, faPlane} from '@fortawesome/free-solid-svg-icons'
+import {faArrowUp as faArrowUpSolid, faFloppyDisk, faXmark, faTriangleExclamation, faSpinner, faRotateRight, faSignal, faPlane, faPlaneCircleCheck} from '@fortawesome/free-solid-svg-icons'
 
 import {apiStore, appStore} from '../store'
 
@@ -44,6 +46,8 @@ function NewNote() {
             modifyNote()
         }
     }
+
+    const [offline, setOffline] = useState(Cookies.get('offline') == 'true')
 
     const hotkeys = [{
         key: 'mod+z, esc',
@@ -216,6 +220,33 @@ function NewNote() {
                                 {t('Go to offline mode?')}
                             </span>
                         </div>
+                        <label
+                            className='newnote-offline-mode'
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div
+                                className='settings-offline-title'
+                            >
+                                {t('Automatically switch to offline mode')}
+                            </div>
+                            <div
+                                className='settings-offline-checkbox'
+                            >
+                                <input
+                                    type='checkbox'
+                                    className='settings-offline-techbox'
+                                    checked={offline}
+                                    onChange={e => {
+                                        setOffline(e.target.checked)
+                                        Cookies.set('offline', e.target.checked, {expires: 1})
+                                    }}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faPlaneCircleCheck}
+                                    className='settings-offline-logo'
+                                />
+                            </div>
+                        </label>
                     </SlideDown>
                 </label>
             </SlideDown>

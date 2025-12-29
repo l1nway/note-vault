@@ -103,7 +103,7 @@ function Note() {
                                     setVisible(true)
                                 }, 1)},
                     edit: () => navigate(
-                        '../notes/new', {
+                        `../notes/edit/${location.state}`, {
                             state: location.state
                         }
                     ),

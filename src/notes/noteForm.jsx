@@ -11,6 +11,7 @@ import SlideLeft from '../components/slideLeft'
 import Options from '../components/options'
 import useSelect from '../components/useSelect'
 
+import {appStore} from '../store'
 import {apiStore} from '../store'
 
 function NoteForm({state, actions, refs}) {
@@ -26,9 +27,16 @@ function NoteForm({state, actions, refs}) {
         setVisibility, selectTag, markdownToggle, retryLoad, setNote, setErrors
     } = actions
 
+    const {categories, tags} = appStore()
+
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
-    const tagsDisabled = note.tags?.length < 1
+    console.log(tags)
+
+    const tagsDisabled = useMemo(
+        () => (tags?.length ?? 0) === 0,
+        [tags]
+    )
 
     const openSelect = useMemo(() => (
         note.category.name !== 'Category not selected' &&
@@ -43,7 +51,7 @@ function NoteForm({state, actions, refs}) {
         note.category.name !== 'Loading categories'
     ), [note.category.name])
 
-    const renderCategories = note.categories?.map((element, index) =>
+    const renderCategories = categories?.map((element, index) =>
         <div
             className='newnote-select-option'
             onClick={() => {
@@ -59,8 +67,10 @@ function NoteForm({state, actions, refs}) {
             {element.name}
         </div>
     )
+
     const catsDisabled = useMemo(
-        () => note.categories?.length < 1, [note.categories]
+        () => (categories?.length ?? 0) === 0,
+        [categories]
     )
     
     const categorySelect = useSelect({
@@ -70,7 +80,7 @@ function NoteForm({state, actions, refs}) {
     })
         
     // display list of tags
-    const renderTags = note?.tags?.map((element, index) => 
+    const renderTags = tags?.map((element, index) => 
         <div
             key={index}
             className='newnote-tag-element'
@@ -169,10 +179,10 @@ function NoteForm({state, actions, refs}) {
                     ${catsDisabled && !errors.categories ? '--loading' : ''} 
                     ${errors.categories ? '--cats-error' : ''}`
                 }
-                onClick={categorySelect.handleToggle}
-                onBlur={categorySelect.handleBlur}
-                onFocus={categorySelect.handleFocus}
-                onKeyDown={categorySelect.handleKeyDown}
+                onClick={!catsDisabled && categorySelect.handleToggle}
+                onBlur={!catsDisabled && categorySelect.handleBlur}
+                onFocus={!catsDisabled && categorySelect.handleFocus}
+                onKeyDown={!catsDisabled && categorySelect.handleKeyDown}
             >
                 <div
                     className='newnote-category-title'
@@ -234,7 +244,7 @@ function NoteForm({state, actions, refs}) {
                             >
                             <FontAwesomeIcon
                                 className={`newnote-category-arrow 
-                                    ${catsDisabled && !errors.categories ? '--loading-hvr' : ''} 
+                                    ${(catsDisabled && !errors.categories) ? '--loading-hvr' : ''} 
                                     ${errors.categories ? '--cats-error-hvr' : ''}`
                                 }
                                 icon={faArrowUpSolid}
@@ -290,7 +300,7 @@ function NoteForm({state, actions, refs}) {
                     </SlideLeft>
                 </div>
                 <SlideDown
-                    visibility={errors.tags || loading || note.tags?.length == 0}
+                    visibility={errors.tags || loading || tagsDisabled}
                 >
                     <span
                         className={`tags-error-message ${errors.tags && 'true-error'}`}
@@ -306,7 +316,7 @@ function NoteForm({state, actions, refs}) {
                     </span>
                 </SlideDown>
                 <SlideDown
-                    visibility={visibility.tags}
+                    visibility={visibility.tags && !tagsDisabled}
                 >
                     <div
                         className='newnote-tags'
