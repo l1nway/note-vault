@@ -191,12 +191,6 @@ const useClarifyLogic = (props) => {
             try {
                 setSavings(prev => ({...prev, [currentId]: false}))
                 removeSavingError(currentId, path)
-
-                // updating the list of objects
-                if (currentAction == 'delete' || currentAction == 'force') {
-                    props.setNotes(prev => prev.filter(note => note.id !== currentId))
-                }
-
                 
                 // if Clarify was mounted only to try to download data from the server again after error, then it is unmounted back
                 const activeIdInStore = clarifyStore.getState().currentElementId
