@@ -1,0 +1,308 @@
+button {
+    transition: 300ms border;
+}
+
+.profile-values {
+    border-bottom: 0.1vw solid var(--blck-bc-hvr);
+    padding: 0vw 0vw 2vw;
+}
+
+.profile-name {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    @media (max-width: 1024px) {
+        align-items: center;
+    }
+}
+
+.profile-name-group {
+    position: relative;
+    display: inline-flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+.name-title {
+    color: var(--blck-bc-fcs);
+    font-size: 1.75vw;
+    margin: 0;
+    padding: 1vw 0vw;
+    text-wrap: nowrap;
+
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+        padding: 2vw 0vw;
+    }
+}
+
+.name-unsaved {
+    color: var(--del-btn-hvr);
+    margin: 0;
+    font-size: 1.75vw;
+    text-wrap: nowrap;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+    }
+}
+
+.name-saved {
+    color: var(--def-btn-hvr);
+    margin: 0;
+    font-size: 1.75vw;
+    text-wrap: nowrap;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+        padding: 2vw 0vw;
+    }
+}
+
+.name-input {
+    border: 0.1vw solid var(--blck-bc-hvr);
+    height: 4vw;
+    border-radius: 1vw;
+    background-color: var(--blck-bc);
+    width: 100%;
+    transition: 300ms border;
+    color: white;
+    padding: 0vw 0.75vw;
+    font-size: 2vw;
+
+    @media (max-width: 1024px) {
+        height: 10vw;
+        font-size: 5vw;
+        border-radius: 3vw;
+        padding: 0vw 2vw;
+    }
+}
+
+.name-input:focus {
+    transition: 300ms background-color, 300ms border;
+    border: 0.1vw solid var(--def-btn);
+}
+
+.name-input:hover {
+    border: 0.1vw solid var(--def-btn);
+}
+
+.profile-email {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    @media (max-width: 1024px) {
+        align-items: center;
+    }
+}
+
+.profile-email-group {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+.profile-email-title {
+    color: var(--blck-bc-fcs);
+    font-size: 1.75vw;
+    margin: 0;
+    padding: 1vw 0vw;
+    text-wrap: nowrap;
+
+    @media (max-width: 1024px) {
+        padding: 2vw 0vw;
+        font-size: 6vw;
+    }
+}
+
+.profile-email-unverifed {
+    color: var(--del-btn);
+    display: flex;
+    justify-content: center;
+    font-size: 2vw;
+    padding: 1vw 0vw 0vw 0vw;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        padding: 2vw;
+    }
+}
+
+.profile-email-input {
+    border: 0.1vw solid var(--blck-bc-hvr);
+    background-color: var(--blck-bc);
+    width: 100%;
+    height: 4vw;
+    border-radius: 1vw;
+    transition: 300ms border;
+    color: white;
+    padding: 0vw 0.75vw;
+    font-size: 2vw;
+
+    @media (max-width: 1024px) {
+        height: 10vw;
+        font-size: 5vw;
+        border-radius: 3vw;
+        padding: 0vw 2vw;
+    }
+}
+
+.profile-email-input:focus {
+    outline: none;
+    transition: 300ms background-color, 300ms border;
+    border: 0.1vw solid var(--def-btn);
+}
+
+.profile-email-input:hover {
+    border: 0.1vw solid var(--def-btn);
+}
+
+input:focus {
+    transition: 300ms background-color, 300ms border;
+    outline: none;
+}
+
+.verify-button {
+    font-size: 1.5vw;
+    height: 4vw;
+    width: 100%;
+    background-color: var(--blck-bc);
+    border: 0.25vw solid var(--blck-bc-hvr);
+    border-radius: 1vw;
+    margin: 0vw 0.5vw 0vw 0vw;
+    color: var(--def-white);
+    transition: 300ms border, 300ms background-color;
+    margin: 1vw 0vw;
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-hvr);
+        width: 100%;
+        border-radius: 3vw;
+        height: 10vw;
+        font-size: 5vw;
+        margin: 0;
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0vw 2vw;
+    }
+}
+
+.verify-button:hover,
+.verify-button:focus {
+    transition: 300ms border, 300ms background-color;
+    background-color: var(--blck-bc-hvr);
+
+    @media (max-width: 1024px) {
+        border: 1vw solid transparent;
+    }
+}
+
+.profile-email-sended {
+    color: var(--def-btn);
+    display: flex;
+    justify-content: center;
+    font-size: 2vw;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+        padding: 2vw 0vw;
+    }
+}
+
+.values-buttons {
+    margin: 1vw 0vw 0vw 0vw;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    transition: 300ms max-height, 300ms opacity;
+    max-height: var(--height);
+    opacity: var(--opacity);
+    pointer-events: var(--pointer);
+
+    @media (max-width: 1024px) {
+        padding-top: 3vw;
+        display: flex;
+        flex-direction: column;
+        width: auto;
+        gap: 3vw;
+    }
+}
+
+.values-save {
+    font-size: 1.5vw;
+    height: 4vw;
+    width: 50%;
+    background-color: var(--def-btn);
+    border: 0.25vw solid var(--blck-bc-hvr);
+    border-radius: 1vw;
+    margin: 0vw 0.5vw 0vw 0vw;
+    color: var(--blck-bc);
+    transition: 300ms border, 300ms background-color;
+    text-transform: capitalize;
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-hvr);
+        width: 100%;
+        border-radius: 3vw;
+        height: 10vw;
+        font-size: 5vw;
+    }
+}
+
+.values-save:hover,
+.values-save:focus {
+    transition: 300ms border, 300ms background-color;
+    outline: none;
+    background-color: var(--def-btn-hvr);
+}
+
+.values-cancel {
+    font-size: 1.5vw;
+    width: 50%;
+    height: 4vw;
+    background-color: var(--del-btn);
+    border: 0.25vw solid var(--blck-bc-hvr);
+    border-radius: 1vw;
+    margin: 0vw 0vw 0vw 0.5vw;
+    color: var(--def-white);
+    transition: 300ms border, 300ms background-color;
+    text-transform: capitalize;
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-hvr);
+        width: 100%;
+        border-radius: 3vw;
+        height: 10vw;
+        font-size: 5vw;
+    }
+}
+
+.values-cancel:hover {
+    transition: 300ms border, 300ms background-color;
+    outline: none;
+    background-color: var(--del-btn-hvr);
+}
+
+button {
+    cursor: pointer;
+    transition: 300ms background-color, 300ms border;
+}
+
+button:focus {
+    transition: 300ms background-color, 300ms border;
+    outline: none;
+    border: 0.25vw solid var(--blck-bc-fcs);
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-fcs);
+    }
+}

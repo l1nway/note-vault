@@ -1,0 +1,194 @@
+.connected-main {
+    flex-direction: column;
+    display: flex;
+    gap: 1vw;
+}
+
+.profile-connected-accs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-connected-service {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    width: 33%;
+}
+
+.profile-connected-info {
+    width: 33%;
+}
+
+.profile-connected-name {
+    text-transform: capitalize;
+    color: var(--blck-bc-fcs);
+    font-size: 1.75vw;
+    margin: 0;
+
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+    }
+}
+
+.profile-connected-name.--google {
+    background: linear-gradient(
+        90deg,
+        #4285F4,
+        #DB4437,
+        #F4B400,
+        #0F9D58,
+        #4285F4
+    );
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+
+    animation: google-flow 4s linear infinite;
+}
+
+@keyframes google-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+.profile-connected-icon {
+    height: 3vw;
+    width: 3vw;
+
+    @media (max-width: 1024px) {
+        height: 8vw;
+        width: 8vw;
+    }
+}
+
+.profile-connected-icon.--google {
+    animation: google-colors 3s linear infinite;
+}
+
+@keyframes google-colors {
+    0%   {color: #4285F4;}
+    25%  {color: #DB4437;}
+    50%  {color: #F4B400;}
+    75%  {color: #0F9D58;}
+    100% {color: #4285F4;}
+}
+
+.profile-connected-name.--apple {
+    background: linear-gradient(
+        90deg,
+        #252525,
+        #424242,
+        #AAAAAA,
+        #FFFFFF,
+        #252525
+    );
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+
+    animation: apple-flow 4s linear infinite;
+}
+
+@keyframes apple-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+.profile-connected-icon.--apple {
+    animation: apple-colors 3s linear infinite;
+}
+
+@keyframes apple-colors {
+    0%   {color: #252525;}
+    25%  {color: #424242;}
+    50%  {color: #AAAAAA;}
+    75%  {color: #FFFFFF;}
+    100% {color: #252525;}
+}
+
+.profile-connected-account {
+    color: var(--def-white);
+    font-size: 1.75vw;
+
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+    }
+}
+
+.profile-connected-date {
+    color: var(--blck-bc-fcs);
+    font-size: 1.25vw;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+    }
+}
+
+.profile-connected-change {
+    display: flex;
+    width: 33%;
+    align-items: center;
+    justify-content: end;
+}
+
+.profile-connected-switch {
+    height: 4vw;
+    font-size: 1.5vw;
+    border: 0.1vw solid transparent;
+    width: 8rem;
+    background-color: var(--blck-bc);
+    border-radius: 1vw;
+    color: var(--def-btn);
+    text-transform: capitalize;
+    transition: 300ms border, 300ms background-color, 300ms color;
+
+    @media (max-width: 1024px) {
+        font-size: 5vw;
+    }
+}
+
+.profile-connected-switch:hover,
+.profile-connected-switch:focus {
+    outline: none;
+    border: 0.1vw solid var(--def-btn);
+}
+
+.profile-connected-add {
+    font-size: 1.5vw;
+    height: 4vw;
+    width: 50%;
+    background-color: var(--bc-color);
+    border: 0.1vw solid var(--blck-bc-hvr);
+    border-radius: 1vw;
+    color: var(--def-white);
+    transition: 300ms border, 300ms background-color, 300ms color;
+    text-transform: capitalize;
+
+    @media (max-width: 1024px) {
+        width: 100%;
+        border-radius: 3vw;
+        height: 10vw;
+        font-size: 5vw;
+    }
+}
+
+.profile-connected-add:hover,
+.profile-connected-add:focus {
+    transition: 300ms border, 300ms background-color, 300ms color;
+    outline: none;
+    background-color: var(--hover);
+    color: var(--blck-bc-fcs);
+    border: 0.1vw solid var(--blck-bc-hvr);
+}

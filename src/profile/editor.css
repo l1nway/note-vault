@@ -1,0 +1,217 @@
+button {
+    transition: 300ms border;
+}
+
+.image-editor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000bd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: 300ms opacity;
+    z-index: 1000;
+}
+
+.image-editor.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.editor-block {
+    background-color: var(--blck-bc);
+    padding: 2vw;
+    border-radius: 1vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5vw;
+    width: 40vw;
+
+    @media (max-width: 1024px) {
+        width: 90vw;
+        padding: 5vw;
+        border-radius: 3vw;
+        gap: 5vw;
+    }
+}
+
+.editor-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--blck-bc-hvr);
+    border-radius: 1vw;
+    padding: 1vw;
+
+    @media (max-width: 1024px) {
+        border-radius: 3vw;
+    }
+}
+
+.editor-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+    width: 100%;
+    position: relative;
+    touch-action: none;
+    overscroll-behavior: contain;
+    user-select: none;
+}
+
+.avatar-editor {
+    width: 20vw;
+    height: 20vw;
+    border-radius: 50%;
+    overflow: hidden;
+
+    @media (max-width: 1024px) {
+        width: 60vw;
+        height: 60vw;
+    }
+}
+
+.avatar-editor canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.left-rotate,
+.right-rotate {
+    font-size: 2vw;
+    cursor: pointer;
+    background-color: var(--bc-color);
+    color: var(--color);
+    padding: 1vw;
+    border-radius: 50%;
+    transition: 300ms background-color, 300ms transform;
+}
+
+.left-rotate:hover,
+.right-rotate:hover {
+    background-color: var(--hover);
+}
+
+.trash-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 1.5vw;
+    cursor: pointer;
+    color: var(--del-btn);
+    transition: 300ms color;
+}
+
+.trash-icon:hover {
+    color: var(--del-btn-hvr);
+}
+
+.editor-help {
+    width: 100%;
+    padding-top: 1vw;
+    text-align: center;
+}
+
+.help-text {
+    color: var(--blck-bc-fcs);
+    font-size: 1vw;
+
+    @media (max-width: 1024px) {
+        font-size: 3.5vw;
+    }
+}
+
+.editor-zoom,
+.editor-rotate {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5vw;
+}
+
+.zoom-title,
+.rotate-title {
+    color: var(--blck-bc-fcs);
+    font-size: 1.25vw;
+    text-transform: capitalize;
+
+    @media (max-width: 1024px) {
+        font-size: 4vw;
+    }
+}
+
+.zoom-range,
+.rotate-range {
+    width: 100%;
+    cursor: pointer;
+}
+
+.save-button,
+.cancel-button,
+.delete-button {
+    width: 100%;
+    height: 4vw;
+    border-radius: 1vw;
+    font-size: 1.5vw;
+    text-transform: capitalize;
+    transition: 300ms background-color, 300ms border;
+
+    @media (max-width: 1024px) {
+        height: 12vw;
+        font-size: 5vw;
+        border-radius: 3vw;
+    }
+}
+
+.save-button {
+    background-color: var(--def-btn);
+    color: var(--blck-bc);
+    border: 0.25vw solid var(--blck-bc-hvr);
+}
+
+.save-button:hover {
+    background-color: var(--def-btn-hvr);
+}
+
+.cancel-button {
+    background-color: var(--blck-bc-hvr);
+    color: var(--def-white);
+    border: 0.25vw solid transparent;
+}
+
+.cancel-button:hover {
+    border: 0.25vw solid var(--blck-bc-fcs);
+}
+
+.delete-button {
+    background-color: var(--del-btn);
+    color: var(--def-white);
+    border: 0.25vw solid var(--blck-bc-hvr);
+}
+
+.delete-button:hover {
+    background-color: var(--del-btn-hvr);
+}
+
+button {
+    cursor: pointer;
+    transition: 300ms background-color, 300ms border;
+}
+
+button:focus {
+    transition: 300ms background-color, 300ms border;
+    outline: none;
+    border: 0.25vw solid var(--blck-bc-fcs);
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-fcs);
+    }
+}

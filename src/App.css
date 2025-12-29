@@ -1,0 +1,222 @@
+@font-face {
+  font-family: 'E-Ukraine';
+  src: url('./fonts/e-Ukraine/E-Ukraine-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'E-Ukraine';
+  src: url('./fonts/e-Ukraine/E-Ukraine-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  --def-white: white;
+  --blck-bc: #151515;
+  --blck-bc-hvr: #252525ff;
+  --blck-bc-fcs: gray;
+  --def-btn: #5ea500;
+  --def-btn-hvr: #3e6c00;
+  --del-btn: #e7000b;
+  --del-btn-hvr: #950007;
+  overflow-x: hidden;
+  --rcp-background: #111111;
+  --rcp-input-bg: #181818;
+  --rcp-border: #222222;
+  --rcp-text-main: #ffffff;
+  --rcp-text-secondary: #888888;
+  --rcp-radius: 8px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background-color: black;
+  color: white;
+  scroll-behavior: smooth;
+  height: 100%;
+  margin: 0;
+  font-family: 'E-Ukraine', sans-serif;
+}
+
+#root {
+  height: 100%;
+}
+
+input[type=radio] {
+  display: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+*::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+*[style*="overflow-x:auto"], *[style*="overflow-x:scroll"]::after {
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,.4),
+    rgba(255,255,255,.1),
+    rgba(255,255,255,.4)
+  );
+}
+
+*[style*="overflow-y:auto"], *[style*="overflow-y:scroll"]::after {
+  top: 0;
+  bottom: 0;
+  right: 2px;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.4),
+    rgba(255,255,255,.1),
+    rgba(255,255,255,.4)
+  );
+}
+
+.app-main {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  height: 100%;
+  --screen: 'desktop';
+
+  @media (max-width: 1024px) {
+    flex-direction: var(--direction);
+    justify-content: var(--justify);
+    text-align: center;
+    --screen: 'mobile';
+  }
+}
+
+.fade-main {
+  width: 100%;
+}
+
+.page-list {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    
+  @media (max-width: 1024px) {
+    flex-direction: column;
+  }
+}
+
+/* STYLES FOR slideDown ANIMATION */
+
+.slideDown-enter {
+  overflow: hidden;
+  height: 0;
+  width: 100%;
+}
+
+.slideDown-enter-active {
+  overflow: hidden;
+  transition: height 300ms ease;
+  width: 100%;
+}
+
+.slideDown-enter-done {
+  height: auto;
+  width: 100%;
+}
+
+.slideDown-exit {
+  overflow: hidden;
+  width: 100%;
+}
+
+.slideDown-exit-active {
+  overflow: hidden;
+  height: 0;
+  transition: height 300ms ease;
+  width: 100%;
+}
+
+/*  */
+
+.slide-left-enter {
+  overflow: hidden;
+  width: 0;
+}
+
+.slide-left-enter-active {
+  overflow: hidden;
+  transition: width 300ms ease;
+}
+
+.slide-left-enter-done {
+  width: auto;
+}
+
+.slide-left-exit {
+  overflow: hidden;
+}
+
+.slide-left-exit-active {
+  overflow: hidden;
+  width: 0;
+  transition: width 300ms ease;
+}
+
+.content-wrapper {
+  position: relative;
+  overflow-x: hidden;
+  width: 100%;
+  display: flex;
+  height: 100%;
+}
+
+.nav-change-enter {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: 300ms transform, 300ms opacity, 300ms filter;
+}
+
+.nav-change-enter-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.nav-change-exit {
+  opacity: 1;
+  transform: scale(0.5);
+  transition: 300ms transform, 300ms opacity, 300ms filter;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 100%;
+}
+
+.nav-change-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+}
