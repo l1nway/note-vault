@@ -17,7 +17,7 @@ import {apiStore, appStore, clarifyStore, pendingStore} from '../store'
 
 function Groups() {
     const online = apiStore(state => state.online)
-    const {offlineMode, setOfflineMode, setOfflineCategories, setOfflineTags} = appStore()
+    const {offlineMode, setOfflineMode, tags, categories} = appStore()
     // 
     const location = useLocation()
     const path = location.pathname.slice(1)
@@ -70,10 +70,6 @@ function Groups() {
             if (!res.ok) throw new Error(`${res.status}`)
 
             const resData = await res.json()
-            setGroups(resData)
-
-            if (path == 'tags') setOfflineTags(resData)
-            else setOfflineCategories(resData)
 
             setLoading(false)
             setSavings(prev => ({ ...prev, [path]: false }))
@@ -87,20 +83,27 @@ function Groups() {
     }}
 
     useEffect(() => {
-        if (!online) {
+        if (online) {
+            setOfflineMode(false)
+            // token && getNotes()
+            !token && setLoading(false)
             setLoading(false)
-            setLoadingError(true)
-            setLoadingErrorMessage('No internet connection')
-            setGroups([])
-            return
+        }
+        
+        if (!online && !offlineMode) {
+            console.log('нет инета и оффлайн режима')
+            if (Cookies.get('offline') != 'true') {
+                setLoadingError(true)
+                setLoadingErrorMessage('No internet connection')
+                setLoading(false)
+                return
+            }
+            setOfflineMode(true)
         }
 
-        if (online) {
-            if (token) {
-                getGroups()
-            } else {
-
-            }
+        if (offlineMode) {
+            setLoadingError(false)
+            setLoading(false)
         }
     }, [online, token])
 
@@ -120,9 +123,6 @@ function Groups() {
     const listRef = useRef(null)
 
     //
-
-    // array with all groups
-    const [groups, setGroups] = useState([])
 
     const [elementID, setElementID] = useState('')
 
@@ -151,7 +151,7 @@ function Groups() {
         }, 300)
     }
 
-    const renderGroups = groups.map((element, index) =>
+    const renderGroups = ({tags, categories}[path] || []).map((element, index) =>
         <Link
             to='/notes'
             className={`group-element ${
@@ -523,7 +523,6 @@ function Groups() {
                     name={name}
                     setName={setName}
                     getGroups={getGroups}
-                    setGroups={setGroups}
                 />
             : null}
         </div>

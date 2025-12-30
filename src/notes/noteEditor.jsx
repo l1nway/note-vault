@@ -50,6 +50,7 @@ function NoteEditor() {
             // adding a queue to offline synchronization
             addOfflineActions({
                 type: 'create',
+                entity: 'notes',
                 payload: {tempId, ...noteData}
             })
             // flag is set that synchronization does not occur
@@ -116,7 +117,7 @@ function NoteEditor() {
                     (n.id == location.state || (n.tempId && n.tempId == location.state))
                     ? {
                         ...n,
-                        ...noteData, 
+                        ...noteData,
                         tempId,
                         offline: true,
                         syncing: false,
@@ -126,6 +127,7 @@ function NoteEditor() {
             ))
             addOfflineActions({
                 type: 'edit',
+                entity: 'notes',
                 payload: {id: location.state, ...noteData}
             })
             navigate('/notes')

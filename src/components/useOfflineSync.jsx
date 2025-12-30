@@ -3,12 +3,13 @@ import Cookies from 'js-cookie'
 
 import {appStore, pendingStore} from '../store'
 import useApi from '../notes/useApi'
+import clarifyApi from './clarifyApi'
 
 const useOfflineSync = () => {
     const {
         online,
         offlineActions, removeOfflineAction,
-        setNotes,
+        setNotes, setCategories, setTags,
         isSyncing, setIsSyncing,
         updateOfflineActionId
     } = appStore()
@@ -48,14 +49,48 @@ const useOfflineSync = () => {
             
             const actionsQueue = [...offlineActions]
 
+            const entities = {
+                notes: {
+                    set: setNotes,
+                    create: async (payload) => {
+                        const res = await createNote(payload)
+                        return res
+                    },
+                    edit: async (id, payload) => {
+                        const res = await editNote(id, payload)
+                        return res.data
+                    }
+                },
+                categories: {
+                    set: setCategories,
+                    create: async (payload, tempId) => {
+                        return await clarifyApi({entity: 'categories', action: 'new', id: tempId, token, payload})
+                    },
+                    edit: async (id, payload) => {
+                        return await clarifyApi({entity: 'categories', action: 'edit', id, token, payload})
+                    }
+                },
+                tags: {
+                    set: setTags,
+                    create: async (payload, tempId) => {
+                        return await clarifyApi({entity: 'tags', action: 'new', id: tempId, token, payload})
+                    },
+                    edit: async (id, payload) => {
+                        return await clarifyApi({entity: 'tags', action: 'edit', id, token, payload})
+                    }
+                }
+            }
+
             for (const action of actionsQueue) {
                 if (action.type == 'create') {
-                    const {tempId, ...noteData} = action.payload
-                    
-                    setNotes(prev => prev.map(n => n.tempId == tempId ? {...n, syncing: true} : n))
+                    const {entity, payload} = action
+                    const {tempId, ...noteData} = payload
+
+                    entities[entity].set(prev => prev.map(n => n.tempId == tempId ? {...n, syncing: true} : n))
 
                     try {
-                        const res = await createNote(noteData)
+                        const res = await entities[entity].create(noteData)
+                        
                         const serverId = res?.id
 
                         actionsQueue.forEach(a => {
@@ -65,7 +100,7 @@ const useOfflineSync = () => {
 
                         updateOfflineActionId(tempId, serverId)
 
-                        setNotes(prev => prev.map(n => 
+                        entities[entity].set(prev => prev.map(n => 
                             n.tempId == tempId
                                 ? { 
                                     ...n, 
@@ -80,24 +115,25 @@ const useOfflineSync = () => {
 
                         removeOfflineAction(tempId)
                     } catch (e) {
-                        setNotes(prev => prev.map(n => n.tempId == tempId ? {...n, syncing: false} : n))
-                        break
+                        entities[entity].set(prev => prev.map(n => n.tempId == tempId ? {...n, syncing: false} : n))
+                        continue
                     }
                 }
 
                 if (action.type == 'edit') {
-                    const {id, tempId, ...noteData} = action.payload
+                    const {entity, payload} = action
+                    const {id, tempId, ...noteData} = payload
                     
                     if (!id || String(id).length > 10) continue 
 
-                    setNotes(prev => prev.map(n => n.id == id ? {...n, syncing: true} : n))
+                    entities[entity].set(prev => prev.map(n => n.id == id ? {...n, syncing: true} : n))
 
                     try {
-                        const res = await editNote(id, noteData)
+                        const res = await entities[entity].edit(id, noteData)
 
-                        setNotes(prev => prev.map(n =>
+                        entities[entity].set(prev => prev.map(n =>
                             n.id == id 
-                            ? { ...n, ...res.data, offline: false, syncing: false, syncAction: null }
+                            ? { ...n, ...res, offline: false, syncing: false, syncAction: null }
                             : n
                         ))
                         
@@ -105,12 +141,12 @@ const useOfflineSync = () => {
 
                     } catch (e) {
                         console.log(e)
-                        setNotes(prev => prev.map(n => n.id == id ? {...n, syncing: false} : n))
+                        entities[entity].set(prev => prev.map(n => n.id == id ? {...n, syncing: false} : n))
                         
                         if (e.status == 404) {
                             removeOfflineAction(action)
                         }
-                        break
+                        continue
                     }
                 }
             }
@@ -120,7 +156,7 @@ const useOfflineSync = () => {
         }
         processPendings()
         sync()
-    }, [online, offlineActions.length, pendings.length])
+    },  [online, offlineActions.length, pendings.length])
 }
 
 export default useOfflineSync

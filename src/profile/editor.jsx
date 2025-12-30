@@ -93,7 +93,7 @@ const Editor = forwardRef((props, ref) => {
             [180]: 'You can no longer rotate the image to the right.'
         }
 
-        setAnotation(anotations[rotate])
+        setAnnotation(anotations[rotate])
     }, [rotate])
 
     // func for rotating preview image
@@ -132,7 +132,7 @@ const Editor = forwardRef((props, ref) => {
     //
 
     // пока хз буду ли доделывать в итоге
-    const [annotation, setAnotation] = useState('')
+    const [annotation, setAnnotation] = useState('')
 
     // func for reseting all values
     const reset = () => {
@@ -213,8 +213,8 @@ const Editor = forwardRef((props, ref) => {
                         >
                             <AvatarEditor
                                 crossOrigin='anonymous'
-                                onLoadSuccess={() => setAnotation('The image can only be square. If your image has a different aspect ratio, you can move it to fit the desired image into the square.')}
-                                // onImageChange={() => setAnotation('For a specific angle of rotation and scaling of the image, you can use the sliders below')}
+                                onLoadSuccess={() => setAnnotation('The image can only be square. If your image has a different aspect ratio, you can move it to fit the desired image into the square.')}
+                                // onImageChange={() => setAnnotation('For a specific angle of rotation and scaling of the image, you can use the sliders below')}
                                 width={500}
                                 height={500}
                                 image={tempFile}
