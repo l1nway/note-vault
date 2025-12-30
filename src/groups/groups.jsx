@@ -7,7 +7,7 @@ import {useTranslation} from 'react-i18next'
 import Cookies from 'js-cookie'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faTableCells as faTableCellsSolid, faList as faListSolid, faPenToSquare, faTrash as faTrashSolid, faTag, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faSignal} from '@fortawesome/free-solid-svg-icons'
+import {faTowerBroadcast, faServer, faPlane, faTableCells as faTableCellsSolid, faList as faListSolid, faPenToSquare, faTrash as faTrashSolid, faTag, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faSignal} from '@fortawesome/free-solid-svg-icons'
 
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
@@ -291,6 +291,22 @@ function Groups() {
                             }}
                         />
                     </SlideLeft>
+                    <SlideLeft
+                        visibility={element.offline}
+                    >
+                        <FontAwesomeIcon
+                            className='note-offline-icon'
+                            icon={faServer}
+                        />
+                    </SlideLeft>
+                    <SlideLeft
+                        visibility={element.syncing}
+                    >
+                        <FontAwesomeIcon
+                            className='note-offline-icon'
+                            icon={faTowerBroadcast}
+                        />
+                    </SlideLeft>
                 </div>
                 <div
                     className='group-amount'
@@ -345,6 +361,14 @@ function Groups() {
                         >
                             {t(loadingErrorMessage)}
                         </span>
+                    </SlideLeft>
+                    <SlideLeft
+                        visibility={offlineMode}
+                    >
+                        <FontAwesomeIcon
+                            className='newnote-offline-icon'
+                            icon={faPlane}
+                        />
                     </SlideLeft>
                 </div>
                 <div

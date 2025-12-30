@@ -4,40 +4,31 @@ import Cookies from 'js-cookie'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {useState, useMemo} from 'react'
 import ContentLoader from 'react-content-loader'
-import {Link, useLocation} from 'react-router'
-import MDEditor from '@uiw/react-md-editor'
+import {useLocation} from 'react-router'
 import {useTranslation} from 'react-i18next'
 
-import {faPlaneCircleCheck, faBoxArchive as faBoxArchiveSolid, faTrash as faTrashSolid, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faBoxOpen, faSignal, faServer, faTowerBroadcast} from '@fortawesome/free-solid-svg-icons'
+import {faPlaneCircleCheck, faTriangleExclamation, faRotateRight, faSignal} from '@fortawesome/free-solid-svg-icons'
 
-import {appStore, clarifyStore, notesViewStore, pendingStore} from '../store'
+import {appStore, clarifyStore} from '../store'
 
 import SlideDown from '../components/slideDown'
-import SlideLeft from '../components/slideLeft'
 import Clarify from '../components/clarify'
 import notesLogic from './notesLogic'
+import NoteCard from '../components/noteCard'
 
 function NotesList(props) {
     const location = useLocation()
     const path = location.pathname.slice(1)
-    const {t, i18n} = useTranslation()
+    const {t} = useTranslation()
 
     const {setOfflineMode, notes, setNotes, online} = appStore()
-
-    const {undo, pendings} = pendingStore()
-
-    // global state that stores the display view of notes
-    const {notesView} = notesViewStore()
     
     const [offline, setOffline] = useState(Cookies.get('offline') == 'true')
 
     const {
         action, notesError,
-        notesLoading, setNotesLoading,
+        notesLoading,
         notesMessage,
-        savings,
-        savingErrors,
-        retryFunction
     } = clarifyStore()
 
     const {
@@ -49,196 +40,20 @@ function NotesList(props) {
         filteredNotes
     } = notesLogic(props)
 
+    const handleAction = (type, id) => {
+        setElementID(id)
+        openAnim(type)
+    }
+
     // displaying a sorted list
     const renderNotes = useMemo(() => {
         const source = queryString ? filteredNotes : notes
-        return source?.map((element, index) =>
-            <Link
-                key={index}
-                className={`note-element${
-                    pendings.find(p => p.id == element.id)
-                        ? pendings.find(p => p.id == element.id).action == 'archive'
-                            ? ' --archiving'
-                            : ' --disappearance'
-                        : ''
-                }`}
-                state={element.id}
-                to={`note/${element.id}`}
-                onClick={(e) => {
-                    if (pendings.some(p => p.id == element.id)) {
-                        e.preventDefault()
-                        undo(element.id)
-                    }
-                }}
-            >
-                {/* input for css only */}
-                <input
-                    type='checkbox'
-                    className='list-view'
-                    checked={notesView == 'list'}
-                    readOnly
-                />
-                <div
-                    className='note-buttons'
-                >
-                    <FontAwesomeIcon
-                        tabIndex='0'
-                        className='button-archive'
-                        onClick={(e) => {
-                            e.preventDefault()
-                            openAnim('archive')
-                            setElementID(element.id)
-                        }}
-                        icon={faBoxArchiveSolid}
-                    />
-                    <FontAwesomeIcon
-                        tabIndex='0'
-                        className='button-delete'
-                        onClick={(e) => {
-                            e.preventDefault()
-                            openAnim('delete')
-                            setElementID(element.id)
-                        }}
-                        icon={faTrashSolid}
-                    />
-                </div>
-                <div
-                    className='note-content'
-                >
-                    <div
-                        className='note-top-group'
-                    >
-                        <div
-                            className='note-title-top'
-                        >
-                            <h2
-                                className='note-title'
-                            >
-                                {t(element.title)}
-                            </h2>
-                            <SlideLeft
-                                visibility={savings[element.id]}
-                            >
-                                <FontAwesomeIcon
-                                    className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
-                                    icon={retryFunction == 'delete' ? faTrashCan : faFloppyDisk}
-                                />
-                            </SlideLeft>
-                            <SlideLeft
-                                visibility={savingErrors[element.id] || element.id.error}
-                            >
-                                <FontAwesomeIcon
-                                    className='loading-error-icon'
-                                    icon={faTriangleExclamation}
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        setElementID(element.id)
-                                        openAnim(savingErrors[element.id].action)
-                                        setName(savingErrors[element.id].name)
-                                        setColor(savingErrors[element.id].color)
-                                    }}
-                                />
-                            </SlideLeft>
-                            <SlideLeft
-                                visibility={pendings.some(p => p.id == element.id)}
-                            >
-                                <FontAwesomeIcon
-                                    className='loading-save-icon --restore'
-                                    icon={
-                                        pendings?.find(
-                                            p => p.id == element.id
-                                        )?.action == 'archive'
-                                            ? faBoxOpen
-                                            : faTrashCanArrowUp
-                                        }
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        undo(element.id)
-                                    }}
-                                />
-                            </SlideLeft>
-                            <SlideLeft
-                                visibility={element.offline}
-                            >
-                                <FontAwesomeIcon
-                                    className='note-offline-icon'
-                                    icon={faServer}
-                                />
-                            </SlideLeft>
-                            <SlideLeft
-                                visibility={element.syncing}
-                            >
-                                <FontAwesomeIcon
-                                    className='note-offline-icon'
-                                    icon={faTowerBroadcast}
-                                />
-                            </SlideLeft>
-                        </div>
-                        {element.is_markdown ? 
-                            <MDEditor.Markdown
-                                source={element.content}
-                            />
-                            : 
-                            <p
-                                className='note-desc'
-                            >
-                                {t(element.content)}
-                            </p>
-                        }
-                    </div>
-                    <div
-                        className='note-bottom-group'
-                    >
-                        <div
-                            className='note-cats'
-                        >
-                            {element.category ? 
-                                <div
-                                    className='note-category'
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        setNotesLoading(true)
-                                        props.setCategory(element.category)
-                                    }}
-                                >
-                                    <div
-                                        className='category-circle'
-                                    />
-                                    <div
-                                        className='category-text'
-                                    >
-                                        {t(element.category?.name)}
-                                    </div>
-                                </div>
-                            : null}
-                            {element.tags ?
-                                <div
-                                    className='note-tags'
-                                >
-                                    {element.tags?.map((tagElement, index) => (
-                                        <div
-                                            key={index}
-                                            className='note-tag'
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                setNotesLoading(true)
-                                                props.setTag(tagElement)
-                                            }}
-                                        >
-                                            {tagElement.name}
-                                        </div>
-                                    ))}
-                                </div>
-                            : null}
-                        </div>
-                        <div
-                            className='note-date'
-                        >
-                            {new Date(element.created_at).toLocaleDateString(i18n.language, {month: 'short', day: 'numeric'})}
-                        </div>
-                    </div>
-                </div>
-            </Link>
+        return source?.map((element, index) => 
+        <NoteCard
+            key={element.id}
+            note={element}
+            onAction={handleAction}
+        />
     )})
 
     return(
@@ -313,7 +128,7 @@ function NotesList(props) {
                             <div
                                 className='settings-offline-title'
                             >
-                                {t('Automatically switch to offline mode')}
+                                {t('Auto switch to offline mode')}
                             </div>
                             <div
                                 className='settings-offline-checkbox'

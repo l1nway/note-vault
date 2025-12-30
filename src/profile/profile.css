@@ -1601,6 +1601,15 @@ button:focus {
     border: 0.25vw solid var(--blck-bc-hvr);
     border-radius: 1vw;
     cursor: pointer;
+
+    @media (max-width: 1024px) {
+        border: 1vw solid var(--blck-bc-hvr);
+        border-radius: 3vw;
+        height: 10vw;
+        font-size: 5vw;
+        margin-bottom: 3vw;
+        padding: 2vw;
+    }
 }
 
 .settings-offline-checkbox {
@@ -1613,6 +1622,11 @@ button:focus {
     justify-content: center;
     transition: 300ms background-color, 300ms border;
     cursor: pointer;
+
+    @media (max-width: 1024px) {
+        width: 7vw;
+        height: 7vw;
+    }
 }
 
 .settings-offline-checkbox:hover,
@@ -1622,11 +1636,18 @@ button:focus {
 
 .settings-offline-logo {
     opacity: 0;
-    width: 2.5vw;
-    height: 2.5vw;
-    transition: 300ms opacity;
+    max-width: 0vw;
+    max-height: 0vw;
+    transition: 300ms opacity, 300ms max-height, 300ms max-width;
 }
 
 .settings-offline-techbox:checked + .settings-offline-logo {
+    max-width: 2.5vw;
+    max-height: 2.5vw;
     opacity: 1;
+
+    @media (max-width: 1024px) {
+        max-width: 6vw;
+        max-height: 6vw;
+    }
 }

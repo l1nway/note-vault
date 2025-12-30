@@ -316,8 +316,11 @@ const useClarifyLogic = (props) => {
             })
             change({id: props.id, action, name: props.name, color: props.color, path})
             closeAnim()
+        } else if (action == 'unarchive' || action == 'restore') {
+            console.log('unarchive logic')
+            closeAnim()
         } else {
-            // delete, archive, force, unarchive
+            // delete, archive, force
             setSavings(prev => ({...prev, [currentId]: true}))
 
             if (!online || offlineMode) {

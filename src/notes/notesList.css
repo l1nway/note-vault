@@ -29,8 +29,9 @@ input[type=checkbox] {
 
     /* flex: 1; */
     min-height: 0;
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
 
     @media (max-width: 1024px) {
         gap: 3vw;
@@ -166,6 +167,10 @@ input[type=checkbox] {
 
 .note-element:has(.list-view:checked) .note-title {
     min-width: 100%;
+
+    @media (max-width: 1024px) {
+        max-width: 9.5em !important;
+    }
 }
 
 .note-title,

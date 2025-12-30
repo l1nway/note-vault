@@ -19,7 +19,7 @@ export const appStore = create(
       tags: [],
       categories: [],
 
-      setOnline: (status) => set({ online: status }),
+      setOnline: (status) => set({online: status}),
       setOfflineMode: (status) => set({ offlineMode: status }),
       setIsSyncing: (v) => set({ isSyncing: v }),
       setNotes: (fn) =>
@@ -120,7 +120,6 @@ export const clarifyStore = create((set) => ({
 
   // 
   clarifyLoading: true,
-  groupsLoading: true,
   loadingError: false,
   loadingErrorMessage: '',
   savings: {},
@@ -133,7 +132,6 @@ export const clarifyStore = create((set) => ({
   setVisibility: (clarify) => set({visibility: clarify}),
   setAnimating: (clarify) => set({animating: clarify}),
   setClarifyLoading: (clarify) => set({clarifyLoading: clarify}),
-  setGroupsLoading: (clarify) => set({groupsLoading: clarify}),
   setLoadingError: (clarify) => set({loadingError: clarify}),
   setLoadingErrorMessage: (clarify) => set({loadingErrorMessage: clarify}),
   setSavings: (update) => set((state) => ({

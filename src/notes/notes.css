@@ -181,6 +181,10 @@ input[type=checkbox] {
     position: absolute;
     right: 3%;
     top: 15%;
+
+    @media (max-width: 1024px) {
+        display: none;
+    }
 }
 
 .search-icon {

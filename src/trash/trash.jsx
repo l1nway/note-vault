@@ -1,261 +1,52 @@
 import './trash.css'
 
-import {useState, useEffect, useRef} from 'react'
-import {useTranslation} from 'react-i18next'
 import ContentLoader from 'react-content-loader'
-import MDEditor from '@uiw/react-md-editor'
-import {useLocation} from 'react-router'
-import Cookies from 'js-cookie'
+import {useTranslation} from 'react-i18next'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faTableCells as faTableCellsSolid} from '@fortawesome/free-solid-svg-icons'
-import {faList as faListSolid} from '@fortawesome/free-solid-svg-icons'
-import {faTrashCanArrowUp} from '@fortawesome/free-solid-svg-icons'
-import {faTrash as faTrashSolid} from '@fortawesome/free-solid-svg-icons'
-import {faBoxOpen} from '@fortawesome/free-solid-svg-icons'
-import {faSquareCheck} from '@fortawesome/free-regular-svg-icons'
-import {faFloppyDisk} from '@fortawesome/free-solid-svg-icons'
-import {faTriangleExclamation} from '@fortawesome/free-solid-svg-icons'
-import {faTrashCan} from '@fortawesome/free-solid-svg-icons'
+import {faTrashCan, faTriangleExclamation, faFloppyDisk, faList as faListSolid, faTableCells as faTableCellsSolid} from '@fortawesome/free-solid-svg-icons'
 
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import trashLogic from './trashLogic'
+import NoteCard from '../components/noteCard'
 
-import {clarifyStore} from '../store'
+import {notesViewStore, clarifyStore} from '../store'
 
 function Trash() {
   
-  const {t, i18n} = useTranslation()
+  const {t} = useTranslation()
 
-  // used to determine whether the component will perform the login or registration function
-  const location = useLocation()
-  const path = location.pathname.slice(1)
+  const {path, trash, loading, selectedNotes, elementID, gridRef, listRef, getTrash, setTrash, setElementID, openAnim} = trashLogic()
+  
+  // global state that stores the display view of notes
+  const {notesView, setNotesView} = notesViewStore()
+
+  // сonverts values ​​to true or false; for convenience (reducing unnecessary code with tags)
+  const listView = notesView == 'list'
 
   const {
         // action being performed and its purpose
-        action,
-        setAction,
-        // error text returned by the server
-        loadingError,
-        setLoadingError,
+        action, setAction,
         // <Clarify/> window visibility
-        visibility,
         setVisibility,
-        // animation status (used to block unwanted player actions during an animation that could break the animation)
-        animating,
-        setAnimating,
-        // status and it change of data download from the server in the <Clarify/> window
-        clarifyLoading,
-        setClarifyLoading,
         // status of the moment of saving information
-        saving,
-        setSaving,
-        setSavingError,
-        savingError,
-        setErrorAction,
+        saving, savingError,
         errorAction
     } = clarifyStore()
 
-  // 
-  const token = [
-    localStorage.getItem('token'),
-    Cookies.get('token')
-  ].find(
-    token => token
-  &&
-    token !== 'null'
-  )
-
-  const getTrash = () => {
-    fetch(`http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
-      {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json',
-            authorization: 
-                `Bearer ${token}`
-        }
-      })
-    .then(res => res.json())
-    .then(resData => {
-      // original full list
-      setTrash(resData.data)
-      // successful download status
-      setLoading(false)
-    })
+  const handleAction = (type, id) => {
+      setElementID(id)
+      openAnim(type)
   }
-
-  // triggers the function execution on the first load
-  useEffect(() => getTrash(), [])
-  
-  const [loading, setLoading] = useState(true)
-
-  // refs for correctly setting focus on the checkbox imitation
-  const gridRef = useRef(null)
-  const listRef = useRef(null)
-
-  const [catsView, setCatsView] = useState('grid')
-  const listView = catsView == 'list'
-
-  // 
-  const [selectedNotes, setSelectedNotes] = useState([])
-
-  const selectNote = (note) => {
-    setSelectedNotes(prev =>
-      prev.includes(note)
-        // add
-        ? prev.filter(i => i !== note)
-        // remove
-        : [...prev, note]
-    )
-  }
-
-  // array with all tags
-  const [trash, setTrash] = useState([])
-
-  const [elementID, setElementID] = useState('')
-
-  // 
-
-  const openAnim = (action) => {
-    if (animating == true) {
-        return false
-    }
-    setAnimating(true)
-    setAction(action)
-    setErrorAction(action)
-
-    setTimeout(() => {
-        setVisibility(true)
-    }, 10)
-
-    setTimeout(() => {
-        setAnimating(false)
-    }, 300)
-    }
 
   const renderTrash = trash?.map((element, index) =>
-      <div
-        key={index}
-        className='trash-element'
-        tabIndex='0'
-        onClick={() => selectNote(element.id)}
-      >
-        {/* input for css only */}
-        <input
-            type='checkbox'
-            className='list-view'
-            checked={catsView == 'list'}
-            readOnly
-        />
-        <input
-          type='checkbox'
-          className='trash-selected-input'
-          checked={selectedNotes.includes(element.id)}
-          onClick={(e) => e.stopPropagation()}
-          onChange={() => selectNote(element.id)}
-        />
-        <div
-          className='trash-buttons'
-        >
-          <FontAwesomeIcon
-            tabIndex='0'
-            className='trash-button-archive'
-            onClick={(e) => {
-              setElementID(element.id)
-              openAnim(path == 'trash' ? 'restore' : 'unarchive')
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-            icon={path == 'trash' ? faTrashCanArrowUp : faBoxOpen}
-          />
-          <FontAwesomeIcon
-            tabIndex='0'
-            className='trash-button-delete'
-            onClick={(e) => {
-              openAnim(path == 'trash' ? 'force' : 'delete')
-              setElementID(element.id)
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-            icon={faTrashSolid}
-          />
-            <SlideLeft
-              visibility={selectedNotes.includes(element.id)}
-            >
-              <FontAwesomeIcon
-                icon={faSquareCheck}
-                className='trash-button-checkbox'
-              />
-            </SlideLeft>
-        </div>
-        <div
-          className='trash-content'
-        >
-            <div
-              className='trash-top-group'
-            >
-              <h2
-                className='trash-title'
-              >
-                {t(element.title)}
-              </h2>
-              {element.is_markdown ? 
-                <MDEditor.Markdown
-                    source={element.content}
-                />
-                : 
-                <p
-                  className='trash-desc'
-                >
-                  {t(element.content)}
-                </p>
-              }
-            </div>
-            <div
-              className='trash-bottom-group'
-            >
-              <div
-                className='trash-cats'
-              >
-                {element.category ? 
-                  <div
-                    className='trash-category'
-                  >
-                    <div
-                      className='category-circle'
-                    />
-                    <div
-                      className='category-text'
-                    >
-                      {t(element.category?.name)}
-                    </div>
-                  </div>
-                : null}
-              {element.tags ?
-                  <div
-                    className='trash-tags'
-                  >
-                    {element.tags?.map((tagElement, index) => (
-                        <div
-                          key={index}
-                          className='trash-tag'
-                        >
-                          {tagElement.name}
-                        </div>
-                      ))}
-                  </div>
-              : null}
-                </div>
-                <div
-                    className='trash-date'
-                >
-                    {new Date(element.created_at).toLocaleDateString(i18n.language, {month: 'short', day: 'numeric'})}
-                </div>
-            </div>
-        </div>
-    </div>
+    <NoteCard
+      key={element.id}
+      note={element}
+      onAction={handleAction}
+    />
     )
 
   return (
@@ -313,8 +104,8 @@ function Trash() {
             />
             <input
               type='checkbox'
-              checked={catsView == 'list'}
-              onChange={() => setCatsView(catsView == 'list' ? 'grid' : 'list')}
+              checked={notesView == 'list'}
+              onChange={() => setNotesView(notesView == 'list' ? 'grid' : 'list')}
             />
           </label>
 

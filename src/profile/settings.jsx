@@ -245,7 +245,7 @@ function ProfileSettings() {
                 <div
                     className='settings-offline-title'
                 >
-                    {t('Automatically switch to offline mode')}
+                    {t('Auto switch to offline mode')}
                 </div>
                 <div
                     className='settings-offline-checkbox'

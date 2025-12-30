@@ -209,7 +209,7 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                         closeAnim()
                         props?.setName?.('')
                         props?.setColor?.('')
-                        props.setID('')
+                        props?.setID?.('')
                         setClarifyLoading(true)
                         removeSavingError(props.id, path)
                     }}
@@ -232,8 +232,10 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                             color: props.color,
                             path: path
                         }
+
+                        action == 'unarchive' && console.log('работает')
                         
-                        if (action == 'new' || action == 'edit') {
+                        if (action == 'new' || action == 'edit' || action == 'unarchive' || action == 'restore') {
                             offlineChange()
                             return
                         }
@@ -247,9 +249,9 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                         }
                         removeSavingError(props.id, path)
                         
-                        props?.setName('')
-                        props?.setColor('')
-                        props.setID('')
+                        props?.setName?.('')
+                        props?.setColor?.('')
+                        props?.setID?.('')
                     }}
                     className='clarify-action'
                     style={
