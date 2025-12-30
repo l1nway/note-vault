@@ -11,7 +11,6 @@ import {clarifyStore, appStore, apiStore} from './store'
 function authLogic() {
 
     const online = apiStore(state => state.online)
-    const {offlineMode, setOfflineMode} = appStore()
 
     const navigate = useNavigate()
 
@@ -20,7 +19,7 @@ function authLogic() {
     const path = location.pathname.slice(1)
 
     const {setNotesError, setNotesLoading, setNotesMessage, setSavings} = clarifyStore()
-    const {setNotes, setTags, setCategories} = appStore()
+    const {setNotes, setTags, setCategories, setArchive, setTrash} = appStore()
 
     // send data to the server for login or registration
     const submitRequest = async () => {
@@ -59,13 +58,15 @@ function authLogic() {
 
         } catch {
             setServerError(true)
-            }
+        }
     }
 
     const endpoints = [
         {key: 'categories', setter: setCategories},
         {key: 'tags', setter: setTags},
         {key: 'notes', setter: setNotes},
+        {key: 'notes?archived=true', setter: setArchive},
+        {key: 'notes?deleted=true', setter: setTrash}
     ]
 
     const getData = async (token) => {
@@ -86,7 +87,11 @@ function authLogic() {
                     return res.json()
                 })
                 .then(resData => {
-                    endpoint.setter(endpoint.key !== 'notes' ? resData : resData.data)
+                    const keys = ['notes', 'notes?archive=true', 'notes?deleted=true']
+
+                    endpoint.setter(
+                        keys.includes(endpoint.key) ? resData.data : resData
+                    )
                     setSavings(prev => ({...prev, [endpoint.key]: false}))
                 })
             )
@@ -95,9 +100,9 @@ function authLogic() {
 
             setNotesLoading(false)
         } catch (error) {
-            setNotesMessage(error.message)
-            setNotesLoading(false)
-            setNotesError(true)
+            // setNotesMessage(error.message)
+            // setNotesLoading(false)
+            // setNotesError(true)
     }}
 
     // four states to fill values in the inputs

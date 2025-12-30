@@ -17,17 +17,15 @@ input[type=checkbox] {
     align-items: center;
 }
 
-.notes-list {
+/* .notes-list {
     transition: margin 300ms;
     display: flex;
     flex-direction: row;
     gap: 1vw;
     flex-wrap: wrap;
-    /* justify-content: space-between; */
     width: 100%;
     padding: 0vw 0vw 1vw;
 
-    /* flex: 1; */
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
@@ -36,7 +34,7 @@ input[type=checkbox] {
     @media (max-width: 1024px) {
         gap: 3vw;
     }
-}
+} */
 
 .note-element {
     position: relative;

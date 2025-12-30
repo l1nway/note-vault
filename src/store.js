@@ -18,6 +18,8 @@ export const appStore = create(
       notes: [],
       tags: [],
       categories: [],
+      archive: [],
+      trash: [],
 
       setOnline: (status) => set({online: status}),
       setOfflineMode: (status) => set({ offlineMode: status }),
@@ -28,6 +30,10 @@ export const appStore = create(
         typeof fn == 'function' ? set(state => ({tags: fn(state.tags)})) : set({tags: fn}),
       setCategories: (fn) =>
         typeof fn == 'function' ? set(state => ({categories: fn(state.categories)})) : set({categories: fn}),
+      setArchive: (fn) =>
+        typeof fn == 'function' ? set(state => ({archive: fn(state.archive)})) : set({archive: fn}),
+      setTrash: (fn) =>
+        typeof fn == 'function' ? set(state => ({trash: fn(state.trash)})) : set({trash: fn}),
 
       addOfflineActions: (action) =>
         set(state => ({
@@ -158,21 +164,21 @@ export const clarifyStore = create((set) => ({
 export const pendingStore = create((set, get) => ({
   pendings: [],
 
-  schedule: ({id, action, path, payload, onCommit, onTimeout}) => {
+  schedule: ({pendingId, id, action, path, payload, onCommit, onTimeout}) => {
     
-    get().undo(id)
+    get().undo(pendingId)
 
     const timeoutId = setTimeout(() => {
       if (onTimeout) onTimeout()
       if (navigator.onLine) {
-        get().commit(id)
+        get().commit(pendingId)
       } else {
         set(state => ({
           pendings: state.pendings.map(p => 
-            p.id == id ? { ...p, status: 'ready', timeoutId: null } : p
+            p.pendingId == pendingId ? {...p, status: 'ready', timeoutId: null} : p
           )
         }))
-        // get().remove(id)
+        // get().remove(pendingId)
       }
     }, 5000)
 
@@ -180,6 +186,7 @@ export const pendingStore = create((set, get) => ({
       pendings: [
         ...state.pendings,
         {
+          pendingId,
           id,
           action,
           path,
@@ -194,36 +201,36 @@ export const pendingStore = create((set, get) => ({
     }))
   },
 
-  commit: async (id) => {
-    const item = get().pendings.find(p => p.id == id)
+  commit: async (pendingId) => {
+    const item = get().pendings.find(p => p.pendingId == pendingId)
     if (!item || item.status == 'processing') return
 
     set(state => ({
-      pendings: state.pendings.map(p => p.id === id ? {...p, status: 'processing'} : p)
+      pendings: state.pendings.map(p => p.pendingId === pendingId ? {...p, status: 'processing'} : p)
     }))
 
     try {
       await item.onCommit()
-      get().remove(id)
+      get().remove(pendingId)
     } catch (e) {
       console.error('error', e)
       set(state => ({
-        pendings: state.pendings.map(p => p.id == id ? {...p, status: 'ready'} : p)
+        pendings: state.pendings.map(p => p.pendingId == pendingId ? {...p, status: 'ready'} : p)
       }))
     }
   },
 
-  undo: (id) => {
-    const item = get().pendings.find(p => p.id === id)
+  undo: (pendingId) => {
+    const item = get().pendings.find(p => p.pendingId == pendingId)
     if (!item) return
 
     clearTimeout(item.timeoutId)
-    get().remove(id)
+    get().remove(pendingId)
   },
 
-  remove: (id) =>
+  remove: (pendingId) =>
     set(state => ({
-      pendings: state.pendings.filter(p => p.id !== id)
+      pendings: state.pendings.filter(p => p.pendingId !== pendingId)
     }))
 }))
 

@@ -14,7 +14,7 @@ import SlideDown from './slideDown'
 const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const online = apiStore(state => state.online)
-    const {offlineMode, setOfflineMode} = appStore()
+    const {trash, setTrash, notes, archive, offlineMode, setOfflineMode} = appStore()
 
     const {state, actions, pathData} = logic
     const {action, clarifyLoading, loadingError} = state
@@ -240,11 +240,24 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                             return
                         }
                         if (action == 'archive' || action == 'delete' || action == 'force') {
+                            // setTrash(prev => [
+                            //     ...prev,
+                            //     {
+                            //         ...notes.find(n => n.id == props.id),
+                            //         syncing: true,
+                            //         syncAction: action
+                            //     }
+                            // ])
+
+                            const pendingId = crypto.randomUUID()
+                            
                             schedule({
                                 ...context,
+                                pendingId,
                                 onTimeout: () => offlineChange(context), 
                                 onCommit: () => change(context) 
                             })
+
                             closeAnim()
                         }
                         removeSavingError(props.id, path)

@@ -43,7 +43,7 @@ const useClarifyLogic = (props) => {
         currentElementId
     } = clarifyStore()
 
-    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing} = appStore()
+    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing, setTrash, notes} = appStore()
 
     // used to determine the need for a redirect; on the page of a specific note after deleting
     const renavigate = location.pathname == `/notes/note/${props.id}`
@@ -59,21 +59,6 @@ const useClarifyLogic = (props) => {
     // small filter that identifies the desired data object from storage according to the selected action and the current page
     const effectivePath = (path == 'archive' || path == 'trash' || path.startsWith('notes/note')) ? 'notes' : path
     
-    // path does not always match the server, here the correspondences are configured
-    const basePath =
-        path == 'archive' || path == 'trash' || path.startsWith('notes/note')
-            ? 'notes'
-            : path
-
-    // list of configured pathnames
-    const urls = {
-        archive:   `${basePath}/${props.id}/archive`,
-        unarchive: `${basePath}/${props.id}/unarchive`,
-        force:     `${basePath}/${props.id}/force`,
-        restore:   `${basePath}/${props.id}/restore`,
-        new:       `${basePath}`,
-    }
-
     // disappearing clarify window with animation and unmounting
     const closeAnim = () => {
         if (animating == true) {
@@ -174,6 +159,16 @@ const useClarifyLogic = (props) => {
                     if (currentAction == 'new' || currentId == activeIdInStore) {
                         if (!visibility && action !== false) closeAnim()
                     }
+
+                if (currentAction == 'delete') {
+                    setTrash(prev =>
+                        prev.map(item =>
+                            item.id == currentId
+                                ? {...item, syncing: false}
+                                : item
+                        )
+                    )
+                }
             } catch (error) {
                 console.error('', error)
             }
@@ -214,8 +209,8 @@ const useClarifyLogic = (props) => {
             categories: setCategories,
             notes: setNotes,
             tags: setTags,
-            trash: props.setTrash,
-            archive: props.setTrash
+            trash: setTrash,
+            archive: setTrash
         }
 
         // matching by path

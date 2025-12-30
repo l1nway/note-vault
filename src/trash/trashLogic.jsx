@@ -2,7 +2,7 @@ import {useState, useEffect, useRef, useMemo} from 'react'
 import {useLocation} from 'react-router'
 import Cookies from 'js-cookie'
 
-import {clarifyStore} from '../store'
+import {clarifyStore, appStore} from '../store'
 
 function trashLogic() {
 
@@ -26,6 +26,8 @@ function trashLogic() {
             setErrorAction
         } = clarifyStore()
 
+    const {archive, setArchive, trash, setTrash} = appStore()
+
   // 
     const token = [
         localStorage.getItem('token'),
@@ -39,7 +41,6 @@ function trashLogic() {
     const trashUrl = useMemo(
         () => `http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
     [path])
-
   const getTrash = () => {
     fetch(trashUrl, {
         method: 'GET',
@@ -52,7 +53,7 @@ function trashLogic() {
     .then(res => res.json())
     .then(resData => {
       // original full list
-      setTrash(resData.data)
+      // setTrash(resData.data)
       // successful download status
       setLoading(false)
     })
@@ -84,7 +85,6 @@ function trashLogic() {
   }
 
   // array with all tags
-  const [trash, setTrash] = useState([])
 
   const [elementID, setElementID] = useState('')
 

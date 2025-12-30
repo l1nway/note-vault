@@ -19,8 +19,9 @@ function noteCard({note, onAction}) {
     
     const {undo, pendings} = pendingStore()
 
-    const isPending = pendings.some(p => p.id == note.id)
-    const pendingAction = pendings.find(p => p.id == note.id)?.action
+    const pending = pendings.find(p => p.id == note.id)
+    const isPending = Boolean(pending)
+    const pendingAction = pending?.action
 
     const {savings, savingErrors, retryFunction} = clarifyStore()
     const {notesView} = notesViewStore()
@@ -30,7 +31,7 @@ function noteCard({note, onAction}) {
             {type: 'archive', icon: faBoxArchiveSolid},
             {type: 'delete', icon: faTrashSolid}
         ],
-        archive: [
+        archived: [
             {type: 'unarchive', icon: faBoxOpen},
             {type: 'delete', icon: faTrashSolid}
         ],
@@ -53,7 +54,7 @@ function noteCard({note, onAction}) {
             onClick={(e) => {
                 if (isPending || path != 'notes') {
                     e.preventDefault()
-                    undo(note.id)
+                    undo(pending.pendingId)
                 }
             }}
         >
@@ -70,7 +71,7 @@ function noteCard({note, onAction}) {
                 <div
                     className='note-buttons'
                 >
-                    {allActions[path].map((action, index) => (
+                    {allActions[path]?.map((action, index) => (
                         <FontAwesomeIcon
                             key={action.type}
                             icon={action.icon}
@@ -136,7 +137,7 @@ function noteCard({note, onAction}) {
                                     }
                                 onClick={(e) => {
                                     e.preventDefault()
-                                    undo(note.id)
+                                    undo(pending.pendingId)
                                 }}
                             />
                         </SlideLeft>
