@@ -21,6 +21,7 @@ function noteCard({note, onAction}) {
 
     const pending = pendings.find(p => p.id == note.id)
     const isPending = Boolean(pending)
+
     const pendingAction = pending?.action
 
     const {savings, savingErrors, retryFunction} = clarifyStore()

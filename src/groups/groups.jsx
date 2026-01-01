@@ -10,7 +10,7 @@ import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import groupsLogic from './groupsLogic'
-import GroupCard from './groupsCard'
+import GroupCard from './groupCard'
 
 import {apiStore, appStore, clarifyStore} from '../store'
 
@@ -28,6 +28,10 @@ function Groups() {
         <GroupCard
             key={element.id}
             element={element}
+            openAnim={openAnim}
+            setElementID={setElementID}
+            setName={setName}
+            setColor={setColor}
         />
     )
 

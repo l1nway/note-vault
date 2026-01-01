@@ -1,37 +1,50 @@
 import './groups.css'
 
-import {Link} from 'react-router'
+import {useMemo} from 'react'
+import {useLocation, Link} from 'react-router'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faTowerBroadcast, faServer, faPenToSquare, faTrash as faTrashSolid, faTag, faFloppyDisk, faTriangleExclamation, faTrashCan, faTrashCanArrowUp} from '@fortawesome/free-solid-svg-icons'
 
 import SlideLeft from '../components/slideLeft'
+import SlideDown from '../components/slideDown'
 import groupsLogic from './groupsLogic'
 
 import {clarifyStore, pendingStore} from '../store'
 
-function GroupCard({element}) {
+function GroupCard({element, openAnim, setElementID, setName, setColor}) {
+    const {pathname} = useLocation()
+    const path = pathname.slice(1)
+
     const {animating, savings, savingErrors, retryFunction} = clarifyStore()
     const {undo, pendings} = pendingStore()
-    const {path, catsView, setCatsView, setElementID, setColor, setName, openAnim} = groupsLogic()
     
+    console.log('pendings', pendings)
+    
+    const {catsView, setCatsView} = groupsLogic()
+    
+    const pending = useMemo(
+        () => pendings.find(p => p.id == element.id),
+        [pendings, element.id]
+    )
+
+    const isPending = Boolean(pending)
     return (
         <Link
             to='/notes'
-            className={`group-element ${
-                pendings.some(p => p.id == element.id)
-                    ? '--disappearance'
-                    : ''
+            className={`group-element ${isPending
+                ? '--disappearance'
+                : ''
             }`}
             key={element.id}
             state={{
                 sort: path,
                 value: element
             }}
-            onClick={e =>{
-                if (pendings.some(p => p.id == element.id)){
+            onClick={e => {
+                if (isPending) {
                     e.preventDefault()
-                    undo(element.id)
+                    undo(pending.pendingId)
                 }
                 if (savingErrors[path]?.[element.id]) {
                     e.preventDefault()
@@ -49,50 +62,49 @@ function GroupCard({element}) {
                 checked={catsView == 'list'}
                 onChange={() => setCatsView(catsView == 'list' ? 'grid' : 'list')}
             />
-            <div
-                className={`group-buttons ${(
-                    pendings.some(p =>
-                        p.id == element.id) || savingErrors[path]?.[element.id])
-                            ? '--blocked'
-                            : ''
-                }`}
+            <SlideDown
+                visibility={!isPending}
             >
-                <FontAwesomeIcon
-                    className='button-archive'
-                    icon={faPenToSquare}
-                    onClick={(e) => {
-                        e.preventDefault()
-                        if (animating == true) {
-                            return false
-                        }
-                        
-                        if (savingErrors[path]?.[element.id]) {
-                            openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                            setName(savingErrors[path]?.[element.id]?.name, element.id)
-                            setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                            return
-                        }
+                <div
+                    className='group-buttons'
+                >
+                    <FontAwesomeIcon
+                        className='button-archive'
+                        icon={faPenToSquare}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (animating == true) {
+                                return false
+                            }
+                            
+                            if (savingErrors[path]?.[element.id]) {
+                                openAnim(savingErrors[path]?.[element.id]?.action, element.id)
+                                setName(savingErrors[path]?.[element.id]?.name, element.id)
+                                setColor(savingErrors[path]?.[element.id]?.color, element.id)
+                                return
+                            }
 
-                        openAnim('edit', element.id)
-                        setElementID(element.id)
-                        setColor(element.color)
-                        setName(element.name)
-                    }}
-                />
-                <FontAwesomeIcon
-                    className='button-delete'
-                    icon={faTrashSolid}
-                    onClick={(e) => {
-                        e.preventDefault()
-                        if (animating == true) {
-                            return false
-                        }
-                        
-                        setElementID(element.id)
-                        openAnim('delete', element.id)
-                    }}
-                />
-            </div>
+                            openAnim('edit', element.id)
+                            setElementID(element.id)
+                            setColor(element.color)
+                            setName(element.name)
+                        }}
+                    />
+                    <FontAwesomeIcon
+                        className='button-delete'
+                        icon={faTrashSolid}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (animating == true) {
+                                return false
+                            }
+                            
+                            setElementID(element.id)
+                            openAnim('delete', element.id)
+                        }}
+                    />
+                </div>
+            </SlideDown>
             <div
                 className='group-content'
             >
@@ -117,7 +129,7 @@ function GroupCard({element}) {
                     >
                         {savingErrors[path]?.[element.id]
                             ? `#${savingErrors[path]?.[element.id]?.name}`
-                            : (path === 'tags' ? `#${element.name}` : element.name)
+                            : (path == 'tags' ? `#${element.name}` : element.name)
                         }
                     </div>
                     <SlideLeft
@@ -144,14 +156,14 @@ function GroupCard({element}) {
                         />
                     </SlideLeft>
                     <SlideLeft
-                        visibility={pendings.some(p => p.id == element.id)}
+                        visibility={isPending}
                     >
                         <FontAwesomeIcon
                             className='loading-save-icon --restore'
                             icon={faTrashCanArrowUp}
                             onClick={(e) => {
                                 e.preventDefault()
-                                undo(element.id)
+                                undo(pending.pendingId)
                             }}
                         />
                     </SlideLeft>

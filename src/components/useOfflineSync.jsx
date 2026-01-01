@@ -6,13 +6,7 @@ import useApi from '../notes/useApi'
 import clarifyApi from './clarifyApi'
 
 const useOfflineSync = () => {
-    const {
-        online,
-        offlineActions, removeOfflineAction,
-        setNotes, setCategories, setTags, setArchive, setTrash,
-        isSyncing, setIsSyncing,
-        updateOfflineActionId
-    } = appStore()
+    const {online, offlineActions, removeOfflineAction, setNotes, setCategories, setTags, setArchive, setTrash, isSyncing, setIsSyncing, updateOfflineActionId} = appStore()
 
     const syncInProgress = useRef(false)
 
@@ -155,14 +149,14 @@ const useOfflineSync = () => {
                             : n
                         ))
                         
-                        removeOfflineAction(tempId)
+                        removeOfflineAction(id || tempId)
 
                     } catch (e) {
                         console.log(e)
                         entities[entity].set(prev => prev.map(n => n.id == id ? {...n, syncing: false} : n))
                         
                         if (e.status == 404) {
-                            removeOfflineAction(action)
+                            removeOfflineAction(id || tempId)
                         }
                         continue
                     }
@@ -198,7 +192,7 @@ const useOfflineSync = () => {
                             )
                         )
 
-                        removeOfflineAction(tempId)
+                        removeOfflineAction(id || tempId)
 
                     } catch (e) {
                         console.error(e)
@@ -216,18 +210,19 @@ const useOfflineSync = () => {
                 }
 
                 if (['archive', 'delete', 'force'].includes(action.type)) {
-                    const {entity, payload} = action
-                    const id = payload?.id
+                    const {entity, payload, tempId} = action
+                    const id = payload?.id || tempId
 
                     if (!id) continue
 
                     try {
                         await entities[entity][action.type](id)
+                        pendingStore.getState().remove(action.pendingId || id)
                         
-                        removeOfflineAction(id)
+                        removeOfflineAction(id || tempId)
                     } catch (e) {
                         console.error(`Ошибка при ${action.type}:`, e)
-                        if (e.status == 404) removeOfflineAction(id)
+                        if (e.status == 404) removeOfflineAction(id || tempId)
                         continue
                     }
                 }

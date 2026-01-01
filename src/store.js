@@ -40,10 +40,13 @@ export const appStore = create(
           offlineActions: [...(state.offlineActions || []), action],
         })),
 
-      removeOfflineAction: (actionTempId) =>
+      removeOfflineAction: (idOrTempId) =>
         set(state => ({
-          offlineActions: [...(state.offlineActions.filter(a => a?.payload?.tempId !== actionTempId))],
-        })),
+          offlineActions: state.offlineActions.filter(a => {
+            const actionId = a?.payload?.id ?? a?.payload?.tempId
+            return actionId !== idOrTempId
+          })
+      })),
 
       updateOfflineActionId: (tempId, realId) =>
         set(state => ({
@@ -175,13 +178,10 @@ export const pendingStore = create((set, get) => ({
         get().commit(pendingId)
       } else {
         if (onTimeout) onTimeout()
-        set(state => ({
-          pendings: state.pendings.map(p => 
-            p.pendingId == pendingId ? {...p, status: 'ready', timeoutId: null} : p
-          )
-        }))
-      }
-    }, 5000)
+          set(state => ({
+            pendings: state.pendings.filter(p => p.pendingId !== pendingId)
+          }))}
+      }, 5000)
 
     set(state => ({
       pendings: [

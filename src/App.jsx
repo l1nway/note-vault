@@ -8,10 +8,12 @@ import Cookies from 'js-cookie'
 import Navigation from './navigation'
 import Login from './login'
 
-import {apiStore} from './store'
+import {apiStore, appStore} from './store'
 import useOfflineSync from './components/useOfflineSync'
 
 function App() {
+
+  const {offlineActions} = appStore()
 
   const token = [
       localStorage.getItem('token'),
@@ -46,6 +48,8 @@ function App() {
   const topLevel = ['/login', '/register'].includes(location.pathname)
     ? location.pathname
     : 'main'
+
+  console.log('offline actions', offlineActions)
 
   // — Vite
   // — Zustand
