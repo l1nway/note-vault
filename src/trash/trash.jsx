@@ -1,5 +1,7 @@
 import './trash.css'
 
+import {OverlayScrollbarsComponent} from 'overlayscrollbars-react'
+import 'overlayscrollbars/overlayscrollbars.css'
 import ContentLoader from 'react-content-loader'
 import {useTranslation} from 'react-i18next'
 
@@ -12,13 +14,15 @@ import SlideLeft from '../components/slideLeft'
 import trashLogic from './trashLogic'
 import NoteCard from '../components/noteCard'
 
-import {notesViewStore, clarifyStore} from '../store'
+import {notesViewStore, clarifyStore, appStore} from '../store'
 
 function Trash() {
   
   const {t} = useTranslation()
 
-  const {path, trash, loading, selectedNotes, elementID, gridRef, listRef, getTrash, setTrash, setElementID, openAnim} = trashLogic()
+  const {path, loading, selectedNotes, elementID, gridRef, listRef, getTrash, setElementID, openAnim} = trashLogic()
+
+  const {archive, setArchive, trash, setTrash} = appStore()
   
   // global state that stores the display view of notes
   const {notesView, setNotesView} = notesViewStore()
@@ -186,11 +190,22 @@ function Trash() {
       <SlideDown
         visibility={!loading}
       >
-        <div
-          className='trash-list'
+        <OverlayScrollbarsComponent
+          className='profile-scroll'
+          options={{
+              scrollbars: {
+                  autoHide: 'never',
+                  autoHideDelay: 0,
+                  theme: 'os-theme-dark'
+              }
+          }}
         >
-          {renderTrash}
-        </div>
+          <div
+            className='trash-list'
+          >
+            {renderTrash}
+          </div>
+        </OverlayScrollbarsComponent>
       </SlideDown>
       {action ?
         <Clarify

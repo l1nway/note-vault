@@ -169,16 +169,17 @@ export const pendingStore = create((set, get) => ({
     get().undo(pendingId)
 
     const timeoutId = setTimeout(() => {
-      if (onTimeout) onTimeout()
-      if (navigator.onLine) {
+      const isOnline = navigator.onLine
+
+      if (isOnline) {
         get().commit(pendingId)
       } else {
+        if (onTimeout) onTimeout()
         set(state => ({
           pendings: state.pendings.map(p => 
             p.pendingId == pendingId ? {...p, status: 'ready', timeoutId: null} : p
           )
         }))
-        // get().remove(pendingId)
       }
     }, 5000)
 

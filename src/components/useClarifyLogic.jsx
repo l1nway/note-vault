@@ -138,6 +138,20 @@ const useClarifyLogic = (props) => {
                 payload
             })
 
+            const setterMap = {
+                categories: setCategories,
+                notes: setNotes,
+                tags: setTags,
+                trash: setTrash,
+                archive: setTrash
+            }
+
+            const setter = setterMap[currentPath]
+            
+            if (setter) {
+                setter(prev => prev.filter(item => item.id != currentId))
+            }
+
             if (renavigate) navigate('/notes')
             // if successful, the data saving icon is removed
             setSavings(prev => ({...prev, [props.id]: false, [path]: false}))
@@ -223,7 +237,7 @@ const useClarifyLogic = (props) => {
                 setter(prev =>
                 prev.map(item =>
                     item.id == props.id
-                        ? { ...item,
+                        ? {...item,
                             name: props.name,
                             color: props.color,
                             tempId,
@@ -255,7 +269,7 @@ const useClarifyLogic = (props) => {
             setter(prev =>
                 prev.map(item =>
                     item.id == props.id
-                        ? { ...item,
+                        ? {...item,
                             name: props.name,
                             color: props.color
                         }
@@ -312,23 +326,78 @@ const useClarifyLogic = (props) => {
             change({id: props.id, action, name: props.name, color: props.color, path})
             closeAnim()
         } else if (action == 'unarchive' || action == 'restore') {
-            console.log('unarchive logic')
+            if (!online || offlineMode) {
+                let restoredItem = null
+
+                setTrash(prev => {
+                    const updated = prev.filter(item => {
+                        if (item.id == props.id) {
+                            restoredItem = {
+                                ...item,
+                                offline: true,
+                                syncing: false,
+                                syncAction: action
+                            }
+                            return false
+                        }
+                            return true
+                        })
+                            return updated
+                    })
+
+                    if (restoredItem) {
+                        setNotes(prev => [...prev, restoredItem])
+                    }
+
+                    addOfflineActions({
+                        type: action,
+                        entity: path,
+                        payload: {id: props.id}
+                    })
+
+                    setIsSyncing(false)
+                    closeAnim()
+                    return
+        }
+            let restoredItem = null
+
+            setTrash(prev => {
+                const updated = prev.filter(item => {
+                    if (item.id === props.id) {
+                        restoredItem = {...item, syncing: true}
+                        return false
+                    }
+                    return true
+                })
+                return updated
+            })
+
+            if (restoredItem) {
+                setNotes(prev => [...prev, restoredItem])
+            }
+
+            setSavings(prev => ({...prev, [currentId]: true}))
+            change({id: props.id})
             closeAnim()
         } else {
-            // delete, archive, force
-            setSavings(prev => ({...prev, [currentId]: true}))
+            const currentId = retryContext?.id || props.id
 
             if (!online || offlineMode) {
                 addOfflineActions({
-                    type: 'delete',
+                    type: action,
                     entity: path,
-                    payload: {id: props.id}
+                    payload: {id: currentId}
                 })
+                setIsSyncing(false)
+            } else {
+                change(retryContext || {id: currentId, action, path})
             }
 
             if (setter) {
-                setter(prev => prev.filter(item => item.id !== currentId))
+                setter(prev => prev.filter(item => item.id != currentId))
             }
+            
+            closeAnim()
         }
     }
 

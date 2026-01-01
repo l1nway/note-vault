@@ -36,6 +36,11 @@ input[type=checkbox] {
     }
 } */
 
+.notes-wrapper {
+    display: flex;
+    height: 100%;
+}
+
 .note-element {
     position: relative;
     display: grid;

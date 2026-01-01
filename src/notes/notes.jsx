@@ -73,8 +73,10 @@ function Notes() {
     }
 
     useEffect(() => {
-        getTags(),
-        getCats()
+        if (token) {
+            getTags()
+            getCats()
+        }
     }, [])
 
     const categoryRef = useRef(null)

@@ -47,6 +47,10 @@
 .newnote-top {
     display: flex;
     align-items: center;
+
+    @media (max-width: 1024px) {
+        display: none;
+    }
 }
 
 .newnote-loading-icon {
@@ -117,6 +121,11 @@
     display: flex;
     border: 0.1vw solid transparent;
     transition: 300ms border;
+
+    @media (max-width: 1024px) {
+        height: 6vw;
+        width: 6vw;
+    }
 }
 
 .newnote-loading-error:hover,
@@ -327,6 +336,10 @@
     display: flex;
     align-items: center;
     width: 100%;
+
+    @media (max-width: 1024px) {
+        gap: 1vw;
+    }
 }
 
 .newnote-name {
@@ -351,6 +364,11 @@
     top: 60% !important;
     padding: 0 !important;
     align-items: baseline !important;
+
+    @media (max-width: 1024px) {
+        left: 44.5% !important;
+        top: 65% !important;
+    }
 }
 
 .newnote-input {
@@ -416,6 +434,10 @@
     padding: 1vw 1vw 0vw;
     display: flex;
     color: var(--del-btn-hvr);
+
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+    }
 }
 
 .newnote-category-label {
@@ -543,9 +565,13 @@
     border: 0.1vw solid var(--del-btn-hvr);
 }
 
-.category-select-title{
+.category-select-title {
     display: flex;
     align-items: center;
+
+    @media (max-width: 1024px) {
+        gap: 1vw;
+    }
 }
 
 .newnote-category-arrow {
@@ -727,6 +753,13 @@
     align-items: center;
     border: 0.1vw solid transparent;
     transition: 300ms border;
+    
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+        height: 10vw;
+        border-radius: 2vw;
+        gap: 1vw;
+    }
 }
 
 .true-error {
@@ -749,6 +782,11 @@
     background: currentColor;
     border-radius: 50%;
     animation: blink 1.4s infinite both;
+    
+    @media (max-width: 1024px) {
+        width: 1vw;
+        height: 1vw;
+    }
 }
 
 .loading-dots i:nth-child(1) {animation-delay: 0s;}
@@ -817,6 +855,10 @@
     overflow-y: auto;
     margin: 0;
     transition: 300ms border, 300ms color;
+
+    @media (max-width: 1024px) {
+        font-size: 6vw;
+    }
 }
 
 .newnote-content-textarea:disabled {
@@ -856,6 +898,11 @@
 
 .content-loading-placeholder {
     padding-right: 0.25vw;
+    font-size: 6vw;
+    
+    @media (max-width: 1024px) {
+        padding-right: 1vw;
+    }
 }
 
 .text-visible {
@@ -999,6 +1046,10 @@
     outline: none;
     color: var(--def-white);
     border: 0.1vw solid var(--def-btn);
+}
+
+.newnote-markdown-title {
+    margin: 0;
 }
 
 .newnote-markdown-checkbox {

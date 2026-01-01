@@ -1,320 +1,34 @@
 import './groups.css'
 
-import {useState, useRef, useEffect} from 'react'
 import ContentLoader from 'react-content-loader'
-import {Link, useLocation} from 'react-router'
 import {useTranslation} from 'react-i18next'
-import Cookies from 'js-cookie'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faTowerBroadcast, faServer, faPlane, faTableCells as faTableCellsSolid, faList as faListSolid, faPenToSquare, faTrash as faTrashSolid, faTag, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faTrashCanArrowUp, faSignal} from '@fortawesome/free-solid-svg-icons'
+import {faPlane, faTableCells as faTableCellsSolid, faList as faListSolid, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faSignal} from '@fortawesome/free-solid-svg-icons'
 
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import groupsLogic from './groupsLogic'
+import GroupCard from './groupsCard'
 
-import {apiStore, appStore, clarifyStore, pendingStore} from '../store'
+import {apiStore, appStore, clarifyStore} from '../store'
 
 function Groups() {
-    const online = apiStore(state => state.online)
-    const {offlineMode, setOfflineMode, tags, categories} = appStore()
-    // 
-    const location = useLocation()
-    const path = location.pathname.slice(1)
-    // 
-
-    // to call a function from <Clarify/>
-    const clarifyRef = useRef()
-
-    const token = [
-            localStorage.getItem('token'),
-            Cookies.get('token')
-        ].find(
-                token => token
-            &&
-                token !== 'null'
-        )
-
-    const [loading, setLoading] = useState(true)
-
-    const {
-        action, setAction,
-        setVisibility,
-        animating, setAnimating,
-        savings, setSavings,
-        loadingError, loadingErrorMessage,
-        savingErrors, setSavingErrors,
-        setLoadingError,
-        setLoadingErrorMessage,
-        setClarifyLoading,
-        retryFunction, setRetryFunction,
-        currentElementId, setCurrentElementId
-    } = clarifyStore()
-
-    const {
-        undo,
-        pendings
-    } = pendingStore()
-
-    const getGroups = async () => {
-        setLoading(true)
-        setSavings(prev => ({...prev, [path]: true}))
-        try {
-            const res = await fetch(`http://api.notevault.pro/api/v1/${path}`, {
-                method: 'GET',
-                headers: {
-                    'content-type': 'application/json',
-                    authorization: `Bearer ${token}`
-                }
-            })
-            if (!res.ok) throw new Error(`${res.status}`)
-
-            const resData = await res.json()
-
-            setLoading(false)
-            setSavings(prev => ({ ...prev, [path]: false }))
-            setLoadingError(false)
-        } catch (error) {
-            setLoadingErrorMessage(error)
-            setLoading(false)
-            setSavings(prev => ({...prev, [path]: false}))
-            if (elementID == '') setLoadingError(true)
-            else setSavingErrors(prev => ({...prev, [path]: true}))
-    }}
-
-    useEffect(() => {
-        if (online) {
-            setOfflineMode(false)
-            // token && getNotes()
-            !token && setLoading(false)
-            setLoading(false)
-        }
-        
-        if (!online && !offlineMode) {
-            console.log('нет инета и оффлайн режима')
-            if (Cookies.get('offline') != 'true') {
-                setLoadingError(true)
-                setLoadingErrorMessage('No internet connection')
-                setLoading(false)
-                return
-            }
-            setOfflineMode(true)
-        }
-
-        if (offlineMode) {
-            setLoadingError(false)
-            setLoading(false)
-        }
-    }, [online, token])
 
     const {t} = useTranslation()
+    const online = apiStore(state => state.online)
 
-    // 
+    const {offlineMode, setOfflineMode, tags, categories} = appStore()
+    const {action, savings, loadingError, loadingErrorMessage, savingErrors, retryFunction} = clarifyStore()
 
-    // 
+    const {path, loading, catsView, setCatsView, listView, elementID, setElementID, color, setColor, name, setName, openAnim, clarifyRef, gridRef, listRef, getGroups} = groupsLogic()
 
-    const [catsView, setCatsView] = useState('grid')
-    const listView = catsView == 'list'
-    
-    //
-
-    // refs for correctly setting focus on the checkbox imitation
-    const gridRef = useRef(null)
-    const listRef = useRef(null)
-
-    //
-
-    const [elementID, setElementID] = useState('')
-
-    const [color, setColor] = useState('')
-
-    const [name, setName] = useState('')
-
-    // 
-
-    const openAnim = (action, id) => {
-        if (animating == true) {
-            return false
-        }
-        setAnimating(true)
-        setAction(action)
-        setRetryFunction(action)
-        setClarifyLoading(true)
-        setCurrentElementId(id)
-
-        setTimeout(() => {
-            setVisibility(true)
-        }, 10)
-
-        setTimeout(() => {
-            setAnimating(false)
-        }, 300)
-    }
-
-    const renderGroups = ({tags, categories}[path] || []).map((element, index) =>
-        <Link
-            to='/notes'
-            className={`group-element ${
-                pendings.some(p => p.id == element.id)
-                    ? '--disappearance'
-                    : ''
-            }`}
-            key={index}
-            state={{
-                sort: path,
-                value: element
-            }}
-            onClick={e =>{
-                if (pendings.some(p => p.id == element.id)){
-                    e.preventDefault()
-                    undo(element.id)
-                }
-                if (savingErrors[path]?.[element.id]) {
-                    e.preventDefault()
-                    setElementID(element.id)
-                    openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                    setName(savingErrors[path]?.[element.id]?.name, element.id)
-                    setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                }
-            }}
-        >
-            {/* input for css only */}
-            <input
-                type='checkbox'
-                className='list-view'
-                checked={catsView == 'list'}
-                onChange={() => setCatsView(catsView == 'list' ? 'grid' : 'list')}
-            />
-            <div
-                className={`group-buttons ${(
-                    pendings.some(p =>
-                        p.id == element.id) || savingErrors[path]?.[element.id])
-                            ? '--blocked'
-                            : ''
-                }`}
-            >
-                <FontAwesomeIcon
-                    className='button-archive'
-                    icon={faPenToSquare}
-                    onClick={(e) => {
-                        e.preventDefault()
-                        if (animating == true) {
-                            return false
-                        }
-                        
-                        if (savingErrors[path]?.[element.id]) {
-                            openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                            setName(savingErrors[path]?.[element.id]?.name, element.id)
-                            setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                            return
-                        }
-
-                        openAnim('edit', element.id)
-                        setElementID(element.id)
-                        setColor(element.color)
-                        setName(element.name)
-                    }}
-                />
-                <FontAwesomeIcon
-                    className='button-delete'
-                    icon={faTrashSolid}
-                    onClick={(e) => {
-                        e.preventDefault()
-                        if (animating == true) {
-                            return false
-                        }
-                        
-                        setElementID(element.id)
-                        openAnim('delete', element.id)
-                    }}
-                />
-            </div>
-            <div
-                className='group-content'
-            >
-                {path == 'tags' ? 
-                    <FontAwesomeIcon
-                        icon={faTag}
-                        className='group-tag'
-                    />
-                : 
-                    <div
-                        className='group-color'
-                        style={{
-                            '--color': element.color
-                        }}
-                    />
-                }
-                <div
-                    className='group-title-top'
-                >
-                    <div
-                        className='group-title'
-                    >
-                        {savingErrors[path]?.[element.id]
-                            ? `#${savingErrors[path]?.[element.id]?.name}`
-                            : (path === 'tags' ? `#${element.name}` : element.name)
-                        }
-                    </div>
-                    <SlideLeft
-                        visibility={savings[element.id]}
-                    >
-                        <FontAwesomeIcon
-                            className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
-                            icon={retryFunction == 'delete' ? faTrashCan : faFloppyDisk}
-                        />
-                    </SlideLeft>
-                    <SlideLeft
-                        visibility={savingErrors[path]?.[element.id]}
-                    >
-                        <FontAwesomeIcon
-                            className='loading-error-icon'
-                            icon={faTriangleExclamation}
-                            onClick={(e) => {
-                                e.preventDefault()
-                                setElementID(element.id)
-                                openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                                setName(savingErrors[path]?.[element.id]?.name, element.id)
-                                setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                            }}
-                        />
-                    </SlideLeft>
-                    <SlideLeft
-                        visibility={pendings.some(p => p.id == element.id)}
-                    >
-                        <FontAwesomeIcon
-                            className='loading-save-icon --restore'
-                            icon={faTrashCanArrowUp}
-                            onClick={(e) => {
-                                e.preventDefault()
-                                undo(element.id)
-                            }}
-                        />
-                    </SlideLeft>
-                    <SlideLeft
-                        visibility={element.offline}
-                    >
-                        <FontAwesomeIcon
-                            className='note-offline-icon'
-                            icon={faServer}
-                        />
-                    </SlideLeft>
-                    <SlideLeft
-                        visibility={element.syncing}
-                    >
-                        <FontAwesomeIcon
-                            className='note-offline-icon'
-                            icon={faTowerBroadcast}
-                        />
-                    </SlideLeft>
-                </div>
-                <div
-                    className='group-amount'
-                >
-                    {element.notes_count} notes
-                </div>
-            </div>
-        </Link>
+    const renderGroups = ({tags, categories}[path] || []).map((element) =>
+        <GroupCard
+            key={element.id}
+            element={element}
+        />
     )
 
     return(

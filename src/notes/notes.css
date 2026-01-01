@@ -334,8 +334,8 @@ input[type=checkbox] {
     border-radius: 0.75vw;
     transition: left 300ms;
     z-index: 0;
-    transition: background-color 300ms;
-
+    transition: background-color 300ms, left 300ms;
+    
     @media (max-width: 1024px) {
         padding: 0;
         width: 8vw;

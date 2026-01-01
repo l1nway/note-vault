@@ -12,7 +12,8 @@
     backdrop-filter: blur(0px);
     background: rgba(0, 0, 0, 0);
     transition: opacity 300ms, backdrop-filter 300ms, transform 300ms;
-    transform: scale(0.5);
+    /* transform: scale(0.5); */
+    transform: none;
     pointer-events: none;
     z-index: 2;
 
@@ -34,7 +35,8 @@
     opacity: 1;
     backdrop-filter: blur(10px);
     background: rgba(0, 0, 0, 0.5);
-    transform: scale(1);
+    /* transform: scale(1); */
+    transform: none;
     pointer-events: auto;
 }
 
@@ -53,6 +55,8 @@
     text-align: left;
     margin: 0 auto;
     max-height: none;
+    transform: scale(0.5);
+    transition: transform 300ms;
 
     @media (max-width: 1024px) {
         position: relative;
@@ -60,6 +64,10 @@
         margin-bottom: auto;
         margin-top: auto;
     }
+}
+
+.clarify-main.visible .clarify-content {
+    transform: scale(1);
 }
 
 .clarify-saving {

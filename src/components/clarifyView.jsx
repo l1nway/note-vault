@@ -14,7 +14,7 @@ import SlideDown from './slideDown'
 const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const online = apiStore(state => state.online)
-    const {trash, setTrash, notes, archive, offlineMode, setOfflineMode} = appStore()
+    const {offlineMode} = appStore()
 
     const {state, actions, pathData} = logic
     const {action, clarifyLoading, loadingError} = state
@@ -26,7 +26,7 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const {schedule} = pendingStore()
 
-    const [inputNull, setInputNull] = useState(false)
+    const [inputNull] = useState(false)
 
     const [color, setColor] = useColor(props.color ? props.color : 'white')
 
@@ -232,23 +232,12 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                             color: props.color,
                             path: path
                         }
-
-                        action == 'unarchive' && console.log('работает')
                         
                         if (action == 'new' || action == 'edit' || action == 'unarchive' || action == 'restore') {
                             offlineChange()
                             return
                         }
                         if (action == 'archive' || action == 'delete' || action == 'force') {
-                            // setTrash(prev => [
-                            //     ...prev,
-                            //     {
-                            //         ...notes.find(n => n.id == props.id),
-                            //         syncing: true,
-                            //         syncAction: action
-                            //     }
-                            // ])
-
                             const pendingId = crypto.randomUUID()
                             
                             schedule({

@@ -174,10 +174,12 @@ a {
 }
 
 .nav-links.visible {
-    opacity: 1;
-    background-color: rgba(0, 0, 0, 0.9);
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
+    @media (max-width: 1024px) {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.9);
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
 }
 
 .mobile-profile {

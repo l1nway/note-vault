@@ -288,23 +288,26 @@
 }
 
 .--disappearance {
-    transition: opacity 5000ms, min-width 10000ms, max-width 10000ms;
-    min-width: 0%;
-    max-width: 0%;
+    transition: opacity 5000ms, min-width 5000ms, max-width 5000ms, padding 5000ms, 5000ms border;
+    min-width: 0vw;
+    max-width: 0vw;
     opacity: 0;
-    border: 0.1vw solid var(--del-btn);
+    padding: 0;
+    outline: 0.1vw solid var(--del-btn);
+    outline-offset: -0.1vw;
+    border: 0;
     animation: deleting-border 1200ms ease-in-out infinite;
 }
 
 @keyframes deleting-border {
     0% {
-        border-color: var(--del-btn);
+        outline-color: var(--del-btn);
     }
     50% {
-        border-color: transparent;
+        outline-color: transparent;
     }
     100% {
-        border-color: var(--del-btn);
+        outline-color: var(--del-btn);
     }
 }
 

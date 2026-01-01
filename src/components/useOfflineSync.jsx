@@ -9,7 +9,7 @@ const useOfflineSync = () => {
     const {
         online,
         offlineActions, removeOfflineAction,
-        setNotes, setCategories, setTags,
+        setNotes, setCategories, setTags, setArchive, setTrash,
         isSyncing, setIsSyncing,
         updateOfflineActionId
     } = appStore()
@@ -59,7 +59,9 @@ const useOfflineSync = () => {
                     edit: async (id, payload) => {
                         const res = await editNote(id, payload)
                         return res.data
-                    }
+                    },
+                    archive: async (id) => await clarifyApi({entity: 'notes', action: 'archive', id, token}),
+                    delete: async (id) => await clarifyApi({entity: 'notes', action: 'delete', id, token}),
                 },
                 categories: {
                     set: setCategories,
@@ -68,7 +70,8 @@ const useOfflineSync = () => {
                     },
                     edit: async (id, payload) => {
                         return await clarifyApi({entity: 'categories', action: 'edit', id, token, payload})
-                    }
+                    },
+                    delete: async (id) => await clarifyApi({entity: 'categories', action: 'delete', id, token}),
                 },
                 tags: {
                     set: setTags,
@@ -77,7 +80,22 @@ const useOfflineSync = () => {
                     },
                     edit: async (id, payload) => {
                         return await clarifyApi({entity: 'tags', action: 'edit', id, token, payload})
-                    }
+                    },
+                    delete: async (id) => await clarifyApi({entity: 'tags', action: 'delete', id, token}),
+                },
+                archived: {
+                    set: setArchive,
+                    unarchive: async (payload, tempId) => {
+                        return await clarifyApi({entity: 'archived', action: 'unarchive', id: tempId, token, payload})
+                    },
+                    delete: async (id) => await clarifyApi({entity: 'archived', action: 'delete', id, token}),
+                },
+                trash: {
+                    set: setTrash,
+                    restore: async (payload, tempId) => {
+                        return await clarifyApi({entity: 'trash', action: 'restore', id: tempId, token, payload})
+                    },
+                    force: async (id) => await clarifyApi({entity: 'archived', action: 'force', id, token}),
                 }
             }
 
@@ -133,7 +151,7 @@ const useOfflineSync = () => {
 
                         entities[entity].set(prev => prev.map(n =>
                             n.id == id 
-                            ? { ...n, ...res, offline: false, syncing: false, syncAction: null }
+                            ? {...n, ...res, offline: false, syncing: false, syncAction: null}
                             : n
                         ))
                         
@@ -149,10 +167,73 @@ const useOfflineSync = () => {
                         continue
                     }
                 }
+
+                if (action.type == 'unarchive' || action.type == 'restore') {
+                    const {entity, payload, tempId} = action
+                    const id = payload?.id || tempId
+
+                    if (!id) continue
+
+                    entities[entity].set(prev =>
+                        prev.map(n =>
+                            n.id === id || n.tempId === id
+                                ? { ...n, syncing: true }
+                                : n
+                        )
+                    )
+
+                    try {
+                        await entities[entity][action.type](payload, id)
+
+                        entities[entity].set(prev =>
+                            prev.map(n =>
+                                n.id == id || n.tempId == id
+                                    ? {
+                                        ...n,
+                                        offline: false,
+                                        syncing: false,
+                                        syncAction: null
+                                    }
+                                    : n
+                            )
+                        )
+
+                        removeOfflineAction(tempId)
+
+                    } catch (e) {
+                        console.error(e)
+
+                        entities[entity].set(prev =>
+                            prev.map(n =>
+                                n.id == id || n.tempId == id
+                                    ? {...n, syncing: false}
+                                    : n
+                            )
+                        )
+
+                        continue
+                    }
+                }
+
+                if (['archive', 'delete', 'force'].includes(action.type)) {
+                    const {entity, payload} = action
+                    const id = payload?.id
+
+                    if (!id) continue
+
+                    try {
+                        await entities[entity][action.type](id)
+                        
+                        removeOfflineAction(id)
+                    } catch (e) {
+                        console.error(`Ошибка при ${action.type}:`, e)
+                        if (e.status == 404) removeOfflineAction(id)
+                        continue
+                    }
+                }
             }
-            
-            syncInProgress.current = false
-            setIsSyncing(false)
+                syncInProgress.current = false
+                setIsSyncing(false)
         }
         processPendings()
         sync()

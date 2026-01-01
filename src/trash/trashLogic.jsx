@@ -26,7 +26,7 @@ function trashLogic() {
             setErrorAction
         } = clarifyStore()
 
-    const {archive, setArchive, trash, setTrash} = appStore()
+    const {online, archive, setArchive, trash, setTrash} = appStore()
 
   // 
     const token = [
@@ -41,7 +41,9 @@ function trashLogic() {
     const trashUrl = useMemo(
         () => `http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
     [path])
+
   const getTrash = () => {
+    setLoading(true)
     fetch(trashUrl, {
         method: 'GET',
         headers: {
@@ -60,9 +62,9 @@ function trashLogic() {
   }
 
   // triggers the function execution on the first load
-  useEffect(() => getTrash(), [])
+  useEffect(() => {if (online) {getTrash()}}, [])
   
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   // refs for correctly setting focus on the checkbox imitation
   const gridRef = useRef(null)
@@ -107,7 +109,7 @@ function trashLogic() {
     }, 300)
     }
 
-    return {path, trash, loading, selectedNotes, catsView, listView, elementID, gridRef, listRef, getTrash, setTrash, setCatsView, selectNote, setElementID, openAnim}
+    return {path, loading, selectedNotes, catsView, listView, elementID, gridRef, listRef, getTrash, setCatsView, selectNote, setElementID, openAnim}
 }
 
 export default trashLogic

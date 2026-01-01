@@ -31,8 +31,6 @@ function NoteForm({state, actions, refs}) {
 
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
-    console.log(tags)
-
     const tagsDisabled = useMemo(
         () => (tags?.length ?? 0) === 0,
         [tags]
@@ -69,8 +67,8 @@ function NoteForm({state, actions, refs}) {
     )
 
     const catsDisabled = useMemo(
-        () => (categories?.length ?? 0) === 0,
-        [categories]
+        () => (categories?.length ?? 0) == 0 || loading,
+        [categories, loading]
     )
     
     const categorySelect = useSelect({
@@ -177,7 +175,9 @@ function NoteForm({state, actions, refs}) {
             <label
                 className={`newnote-category-label 
                     ${catsDisabled && !errors.categories ? '--loading' : ''} 
-                    ${errors.categories ? '--cats-error' : ''}`
+                    ${errors.categories ? '--cats-error' : ''}
+                    ${loading ? '--loading' : ''}
+                    `
                 }
                 onClick={!catsDisabled && categorySelect.handleToggle}
                 onBlur={!catsDisabled && categorySelect.handleBlur}
@@ -276,7 +276,9 @@ function NoteForm({state, actions, refs}) {
             <label
                 className={`newnote-tag-label
                     ${tagsDisabled && !errors.tags ? '--loading' : ''} 
-                    ${errors.tags ? '--cats-error' : ''}`
+                    ${errors.tags ? '--cats-error' : ''}
+                    ${loading ? '--loading' : ''}
+                    `
                 }
                 tabIndex={-1}
             >
@@ -399,7 +401,7 @@ function NoteForm({state, actions, refs}) {
                                 }}
                             >
                                 <div
-                                    className='content-loadint-placeholder'
+                                    className='content-loading-placeholder'
                                 >
                                     {t('Loading content')}
                                 </div>

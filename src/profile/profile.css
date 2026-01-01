@@ -10,7 +10,6 @@ button {
 }
 
 .profile-main {
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -18,14 +17,17 @@ button {
 
     /* TABLET */
     @media (max-width: 1024px) {
-        justify-content: center;
-        align-items: center;
+        
     }
 }
 
 .profile-title-block {
     display: flex;
     align-items: center;
+
+    @media (max-width: 1024px) {
+        justify-content: center;
+    }
 }
 
 .profile-title {
@@ -39,19 +41,22 @@ button {
     }
 }
 
+.profile-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .profile-block {
     background-color: var(--blck-bc);
     padding: 1vw;
     display: flex;
-    justify-content: center;
     text-align: center;
     width: 75%;
-    margin: 0 auto;
+    margin: 1vw auto 1.5vw;
     border-radius: 1.5vw;
     border: 0.1vw solid var(--blck-bc-hvr);
     flex-direction: column;
-    overflow-y: scroll;
-    height: 100%;
+    height: auto;
 
     /* TABLET */
     @media (min-width: 769px) and (max-width: 1024px) {
@@ -62,7 +67,8 @@ button {
         margin: 0;
         padding: 4vw;
         max-width: 100%;
-        width: 95%;
+        width: 100%;
+        justify-content: center;
     }
 }
 

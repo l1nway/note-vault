@@ -1,5 +1,5 @@
 import {useEffect, useState, useRef, createRef} from 'react'
-import {Link, useLocation, Route, Routes} from 'react-router'
+import {Link, useLocation, Route, Routes, useNavigate} from 'react-router'
 import {useTranslation} from 'react-i18next'
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
 import Cookies from 'js-cookie'
@@ -31,6 +31,8 @@ function Navigation() {
     const {t} = useTranslation()
 
     const {file} = profileStore()
+
+    const navigate = useNavigate()
     
 
     // universal function for convenient routing of all values ​​from local storage and cookies
@@ -151,8 +153,6 @@ function Navigation() {
             className: ''
         })
     }
-
-    const authorization = true
 
     const location = useLocation()
 
@@ -317,10 +317,10 @@ function Navigation() {
                     >
                         <Link
                             className='profile-text'
-                            to={authorization ? '/profile' : '/login'}
+                            to={token ? '/profile' : '/login'}
                             tabIndex='0'
                         >
-                            {(localStorage.getItem('avatar') || Cookies.get('avatar')) ?
+                            {token ?
                                 <img
                                     className='profile-img'
                                     src={localStorage.getItem('avatar')}
@@ -334,7 +334,7 @@ function Navigation() {
                             <div
                                 className='profile-info'
                             >
-                                {token == false ?
+                                {!token ?
                                     <div
                                         className='not-authorized'
                                     >
@@ -362,6 +362,11 @@ function Navigation() {
                                 <FontAwesomeIcon
                                     className='logout-icon'
                                     icon={faArrowRightFromBracketSolid}
+                                    onClick={() => {
+                                        ['token', 'name', 'email', 'verif', 'accdate', 'avatar', 'remember']
+                                            .forEach(key => localStorage.removeItem(key))
+                                        navigate('/login')
+                                    }}
                                 />
                             :
                                 null

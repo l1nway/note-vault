@@ -18,6 +18,7 @@ import useClarifyLogic from './useClarifyLogic'
         // color storage (used only for categories)
         const colors = ['#1E90FF', '#32CD32', '#8A2BE2', '#FF8C00', '#FF1493', '#008B8B', '#3CB371', '#DC143C', '#9370DB', '#66CDAA']
 
+        // for the future; implement saving of the last used colors
         const [recentColors, setRecentColors] = useState([{
             id: 1,
             color: '#1E90FF'

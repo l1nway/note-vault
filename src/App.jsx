@@ -53,6 +53,7 @@ function App() {
   // — React Router
   // — Font Awesome
   // — react-i18next
+  // — OverlayScrollbars
   // — React Hotkeys Hook
   // — react-color-palette
   // — use-gesture by pmndrs
@@ -69,16 +70,12 @@ function App() {
         '--justify': topBar ? 'flex-start' : 'space-between'
       }}
     >
-      {/* <Link
-        to='/login'
+      {/* <button
+        onClick={() => setTopBar(!topBar)}
+        style={{position: 'absolute', zIndex: '12'}}
       >
-        <button
-          onClick={() => setTopBar(!topBar)}
-          style={{position: 'absolute', zIndex: '1'}}
-        >
-          top or bottom
-        </button>
-      </Link> */}
+        top or bottom
+      </button> */}
       <TransitionGroup
         component={null}
       >

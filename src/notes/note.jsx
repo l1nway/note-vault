@@ -15,7 +15,6 @@ import {faTrash} from '@fortawesome/free-solid-svg-icons'
 
 import Share from '../components/share'
 import Clarify from '../components/clarify'
-import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
 
 import {clarifyStore} from '../store'
