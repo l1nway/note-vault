@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useNavigate} from 'react-router'
 import Cookies from 'js-cookie'
@@ -39,7 +39,7 @@ function ProfileSettings() {
 
     // 
 
-    const langList = [{
+    const langList = useMemo(() => [{
         icon: '🇷🇺',
         name: 'russian',
         code: 'ru'
@@ -57,9 +57,10 @@ function ProfileSettings() {
         icon: '🇬🇧',
         name: 'english',
         code: 'en'
-    }]
+    }], [])
 
-    const renderLangs = langList.map((element, index) =>
+    const renderLangs = useMemo(() => 
+        langList.map((element, index) =>
         <label
             className='slctd-lang'
             key={index}
@@ -89,6 +90,8 @@ function ProfileSettings() {
                 {t(element.name)}
             </div>
         </label>
+        ), 
+        [langList, i18n, t, setChangingLang, setLangChanged]
     )
 
     // array with account settings buttons
@@ -99,7 +102,7 @@ function ProfileSettings() {
     // // visibility — subpage visibility status
     // // component — subpage component
     // // message — appearing message returned from the component
-    const settingsButtons = [
+    const settingsButtons = useMemo(() => [
         {
             title: 'Change language',
             class: 'language-settings',
@@ -184,10 +187,11 @@ function ProfileSettings() {
             class: 'settings-delete',
             action: 'Delete'
         }
-    ]
+    ], [changingLang, langChanged, renderLangs, setChangingLang, setChangingPassword, setPasswordChanged, setconnections, connections, setLogout, logout, navigate, t])
 
     // render account settings buttons
-    const renderSettings = settingsButtons.map((element, index) => 
+    const renderSettings = useMemo(() => 
+        settingsButtons.map((element, index) => 
         <div
             key={index}
         >
@@ -211,6 +215,8 @@ function ProfileSettings() {
                 {element.component}
             </SlideDown>
         </div>
+        ), 
+        [settingsButtons, t]
     )
 
     // 

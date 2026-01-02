@@ -1,6 +1,6 @@
 import './notes.css'
 
-import {useState, useEffect, useRef, useCallback} from 'react'
+import {useState, useEffect, useRef, useCallback, useMemo} from 'react'
 import {Link, useLocation} from 'react-router'
 import {useTranslation} from 'react-i18next'
 
@@ -142,24 +142,27 @@ function Notes() {
     }, [categoryValue])
 
     // render list of options
-    const renderCategories = categories?.map((element, index) => 
-        <div
-            key={index}
-            tabIndex='0'
-            className='select-option'
-            onClick={() => {
-                setCategoryValue(element)
-                setNotesLoading(true)
-            }}
-            onKeyDown={(e) => {
-                if (e.key == 'Enter') {
+    const renderCategories = useMemo(() => 
+        categories?.map((element, index) => 
+            <div
+                key={index}
+                tabIndex='0'
+                className='select-option'
+                onClick={() => {
                     setCategoryValue(element)
-                    setCategoryStatus(false)
-                }
-            }}
-        >
-            {t(element.name)}
-        </div>
+                    setNotesLoading(true)
+                }}
+                onKeyDown={(e) => {
+                    if (e.key == 'Enter') {
+                        setCategoryValue(element)
+                        setCategoryStatus(false)
+                    }
+                }}
+            >
+                {t(element.name)}
+            </div>
+        ), 
+        [categories, t, setCategoryValue, setNotesLoading, setCategoryStatus]
     )
 
     // array with all tags (SERVER)
@@ -186,18 +189,21 @@ function Notes() {
     }, [tagValue])
 
     // render list of options
-    const renderTags = tags?.map((element, index) =>
-        <div
-            key={index}
-            tabIndex='0'
-            className='select-option'
-            onClick={() => {
-                setTagValue(element),
-                setNotesLoading(true)
-            }}
-        >
-            #{t(element.name)}
-        </div>
+    const renderTags = useMemo(() => 
+        tags?.map((element, index) =>
+            <div
+                key={index}
+                tabIndex='0'
+                className='select-option'
+                onClick={() => {
+                    setTagValue(element),
+                    setNotesLoading(true)
+                }}
+            >
+                #{t(element.name)}
+            </div>
+        ), 
+        [tags, t, setTagValue, setNotesLoading]
     )
 
     //
@@ -223,14 +229,17 @@ function Notes() {
 
     //
 
-    const table = ['title & description', 'categories, tags, date & deletion and archiving']
+    const table = useMemo(() => ['title & description', 'categories, tags, date & deletion and archiving'], [])
 
-    const renderTable = table.map((element, index) => 
-        <div
-            key={index}
-        >
-            {t(element)}
-        </div>
+    const renderTable = useMemo(() => 
+        table.map((element, index) => 
+            <div
+                key={index}
+            >
+                {t(element)}
+            </div>
+        ), 
+        [table, t]
     )
 
     const openAnim = (action) => {
@@ -263,7 +272,7 @@ function Notes() {
         setIsOpen: setTagStatus
     })
 
-    const hotkeys = [{
+    const hotkeys = useMemo(() => [{
         key: 'mod+k',
         trigger: focusSearch
     },{
@@ -317,15 +326,18 @@ function Notes() {
     },{
         key: 'mod+1, alt+1, shift+1',
         trigger: () => setNotesView('list')
-    }]
+    }], [focusSearch, searchFocus, categoryStatus, tagStatus, setCategoryStatus, setTagStatus, setNotesView])
 
-    const renderHotkeys = hotkeys.map((element, index) =>
-        <Hotkey
-            key={index}
-            keys={element.key}
-            onTrigger={element.trigger}
-            enabled={element.enabled}
-        />
+    const renderHotkeys = useMemo(() => 
+        hotkeys.map((element, index) =>
+            <Hotkey
+                key={index}
+                keys={element.key}
+                onTrigger={element.trigger}
+                enabled={element.enabled}
+            />
+        ), 
+        [hotkeys]
     )
 
     return(

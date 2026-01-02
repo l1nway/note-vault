@@ -1,6 +1,6 @@
 import './note.css'
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Link, useNavigate, useLocation} from 'react-router'
 import MDEditor from '@uiw/react-md-editor'
@@ -63,7 +63,7 @@ function Note() {
     //
 
     // list of buttons and their icons
-    const buttons = [{
+    const buttons = useMemo(() => [{
             'name': 'edit',
             'icon': faPenToSquare
         },{
@@ -75,10 +75,11 @@ function Note() {
         },{
             'name': 'delete',
             'icon': faTrash
-        }]
+        }], [])
 
     // display buttons
-    const renderButtons = buttons.map((element, index) =>
+    const renderButtons = useMemo(() => 
+        buttons.map((element, index) =>
         <button
             to={element.name}
             className='note-button'
@@ -124,11 +125,14 @@ function Note() {
             />
             {element.name}
         </button>
+        ), 
+        [buttons, setAction, setVisibility, setAct, setVisible, navigate, location]
     )
 
     //
 
-    const renderTags = info.tags?.map((element, index) =>
+    const renderTags = useMemo(() => 
+        info.tags?.map((element, index) =>
         <Link
             to='/notes'
             className='note-info-tag'
@@ -140,6 +144,8 @@ function Note() {
         >
             #{t(element.name)}
         </Link>
+        ), 
+        [info.tags, t]
     )
 
     return (

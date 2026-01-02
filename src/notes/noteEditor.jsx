@@ -452,14 +452,14 @@ function NoteEditor() {
         }
     }, [errors.categories])
 
-    const noteData = {
+    const noteData = useMemo(() => ({
         title: note.name,
         content: note.content,
         is_markdown: note.markdown,
         category_id: note.category.id,
         category: note.category,
         tag_ids: note?.selectedTags?.map(t => t.id)
-    }
+    }), [note.name, note.content, note.markdown, note.category, note.selectedTags])
 
     return {
         state: {

@@ -49,12 +49,13 @@ function NotesList(props) {
     const renderNotes = useMemo(() => {
         const source = queryString ? filteredNotes : notes
         return source?.map((element, index) => 
-        <NoteCard
-            key={element.id}
-            note={element}
-            onAction={handleAction}
-        />
-    )})
+            <NoteCard
+                key={element.id}
+                note={element}
+                onAction={handleAction}
+            />
+        )
+    }, [queryString, filteredNotes, notes, handleAction])
 
     return(
         <>

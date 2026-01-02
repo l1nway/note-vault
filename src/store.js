@@ -23,7 +23,7 @@ export const appStore = create(
 
       setOnline: (status) => set({online: status}),
       setOfflineMode: (status) => set({ offlineMode: status }),
-      setIsSyncing: (v) => set({ isSyncing: v }),
+      setIsSyncing: (v) => set({isSyncing: v}),
       setNotes: (fn) =>
         typeof fn == 'function' ? set(state => ({notes: fn(state.notes)})) : set({notes: fn}),
       setTags: (fn) =>

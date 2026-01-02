@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef, createRef} from 'react'
+import {useEffect, useState, useRef, createRef, useMemo} from 'react'
 import {Link, useLocation, Route, Routes, useNavigate} from 'react-router'
 import {useTranslation} from 'react-i18next'
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
@@ -49,7 +49,7 @@ function Navigation() {
     const token = storedValue('token')
 
     // list of endpoints from which to get the number of objects
-    const endpoints = ['notes', 'categories', 'tags', 'notes?archived=true', 'notes?deleted=true']
+    const endpoints = useMemo(() => ['notes', 'categories', 'tags', 'notes?archived=true', 'notes?deleted=true'], [])
 
     // object with the number of objects at each endpoint
     const [amount, setAmount] = useState({})
@@ -176,7 +176,7 @@ function Navigation() {
         setNowLink(location.pathname)
     }, [location])
 
-    const navlinks = [
+    const navlinks = useMemo(() => [
         {
             title: 'All notes',
             link: '/notes',
@@ -203,58 +203,60 @@ function Navigation() {
             icon: faTrashSolid,
             color: '#e5010b'
         }
-    ]
+    ], [])
 
-    const renderLinks = navlinks.map((element, index) =>
-        <Link
-            to={element.link}
-            key={index}
-            ref={(el) => {
-                if (el) ghostRefs.current.set(element.link, el)
-                else ghostRefs.current.delete(element.link)
-            }}
-            className='nav-link'
-            onClick={() => {
-                handleGhostMove(element.link)
-                setMenu(false)
-            }}
-        >
-            <label
-                className='link-label'
+    const renderLinks = useMemo(() => 
+        navlinks.map((element, index) =>
+            <Link
+                to={element.link}
+                key={index}
+                ref={(el) => {
+                    if (el) ghostRefs.current.set(element.link, el)
+                    else ghostRefs.current.delete(element.link)
+                }}
+                className='nav-link'
+                onClick={() => {
+                    handleGhostMove(element.link)
+                    setMenu(false)
+                }}
             >
-                <div
-                    className='nav-title'
+                <label
+                    className='link-label'
                 >
-                    <FontAwesomeIcon
-                        className='nav-icon'
-                        icon={element.icon}
-                        style={{color: element.color}}
+                    <div
+                        className='nav-title'
+                    >
+                        <FontAwesomeIcon
+                            className='nav-icon'
+                            icon={element.icon}
+                            style={{color: element.color}}
+                        />
+                        <div
+                            className='nav-text'
+                        >
+                            {t(element.title)}
+                        </div>
+                    </div>
+
+                    {amount[index] > 0 && (
+                        <div
+                            className='nav-amount'
+                            onClick={() => console.log(amount)}
+                        >
+                            {amount[index]}
+                        </div>
+                    )}
+
+                    <input
+                        id={`link-${index}`}
+                        type='radio'
+                        name='navlink'
+                        checked={nowLink == element.link}
+                        onChange={() => setNowLink(element.link)}
                     />
-                    <div
-                        className='nav-text'
-                    >
-                        {t(element.title)}
-                    </div>
-                </div>
-
-                {amount[index] > 0 && (
-                    <div
-                        className='nav-amount'
-                        onClick={() => console.log(amount)}
-                    >
-                        {amount[index]}
-                    </div>
-                )}
-
-                <input
-                    id={`link-${index}`}
-                    type='radio'
-                    name='navlink'
-                    checked={nowLink == element.link}
-                    onChange={() => setNowLink(element.link)}
-                />
-            </label>
-        </Link>
+                </label>
+            </Link>
+        )
     )
 
     const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve))

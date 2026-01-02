@@ -30,18 +30,21 @@ function Share() {
     const [durationValue, setDurationValue] = useState('Duration not selected')
 
     // list of time variations for how long the link will be available
-    const durations = ['5 minutes', '30 minutes', '1 hour', '24 hour', '7 day', 'No expiration']
+    const durations = useMemo(() => ['5 minutes', '30 minutes', '1 hour', '24 hour', '7 day', 'No expiration'], [])
 
     // display list of time variations
-    const renderDurations = durations.map((element, index) =>
-        <div
-            className='newnote-select-option'
-            onClick={() => setDurationValue(element)}
-            tabIndex='0'
-            key={index}
-        >
-            {element}
-        </div>
+    const renderDurations = useMemo(() => 
+        durations.map((element, index) =>
+            <div
+                className='newnote-select-option'
+                onClick={() => setDurationValue(element)}
+                tabIndex='0'
+                key={index}
+            >
+                {element}
+            </div>
+        ), 
+        [durations, setDurationValue]
     )
 
     // 

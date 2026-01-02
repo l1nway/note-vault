@@ -49,21 +49,24 @@ function NoteForm({state, actions, refs}) {
         note.category.name !== 'Loading categories'
     ), [note.category.name])
 
-    const renderCategories = categories?.map((element, index) =>
-        <div
-            className='newnote-select-option'
-            onClick={() => {
-                setNote(prev => ({
-                    ...prev,
-                    category: element
-                }))
-                setVisibility(prev => ({...prev, category: false}))
-            }}
-            tabIndex='0'
-            key={index}
-        >
-            {element.name}
-        </div>
+    const renderCategories = useMemo(() => 
+        categories?.map((element, index) =>
+            <div
+                className='newnote-select-option'
+                onClick={() => {
+                    setNote(prev => ({
+                        ...prev,
+                        category: element
+                    }))
+                    setVisibility(prev => ({...prev, category: false}))
+                }}
+                tabIndex='0'
+                key={index}
+            >
+                {element.name}
+            </div>
+        ), 
+        [categories, setNote, setVisibility]
     )
 
     const catsDisabled = useMemo(
@@ -78,21 +81,24 @@ function NoteForm({state, actions, refs}) {
     })
         
     // display list of tags
-    const renderTags = tags?.map((element, index) => 
-        <div
-            key={index}
-            className='newnote-tag-element'
-            tabIndex='0'
-            onClick={() => selectTag(element)}
-            ref={index == 0 ? tagRef : null}
-        >
-            {t(element.name)}
-            <input
-                type='checkbox'
-                checked={note.selectedTags?.some(tag => tag.id == element.id)}
-                onChange={() => selectTag(element)}
-            />
-        </div>
+    const renderTags = useMemo(() => 
+        tags?.map((element, index) => 
+            <div
+                key={index}
+                className='newnote-tag-element'
+                tabIndex='0'
+                onClick={() => selectTag(element)}
+                ref={index == 0 ? tagRef : null}
+            >
+                {t(element.name)}
+                <input
+                    type='checkbox'
+                    checked={note.selectedTags?.some(tag => tag.id == element.id)}
+                    onChange={() => selectTag(element)}
+                />
+            </div>
+        ), 
+        [tags, t, selectTag, note.selectedTags, tagRef]
     )
 
     return (

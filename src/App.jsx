@@ -8,12 +8,13 @@ import Cookies from 'js-cookie'
 import Navigation from './navigation'
 import Login from './login'
 
-import {apiStore, appStore} from './store'
+import {apiStore, appStore, pendingStore} from './store'
 import useOfflineSync from './components/useOfflineSync'
 
 function App() {
 
   const {offlineActions} = appStore()
+  const {pendings} = pendingStore()
 
   const token = [
       localStorage.getItem('token'),
@@ -50,6 +51,7 @@ function App() {
     : 'main'
 
   console.log('offline actions', offlineActions)
+  console.log('pendings', pendings)
 
   // — Vite
   // — Zustand

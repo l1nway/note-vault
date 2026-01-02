@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 import Cookies from 'js-cookie'
 
@@ -112,7 +112,7 @@ function Password(props) {
     // legit — true/false, password error output
     // message — output error value
     // button — save button visibility, used only at the end
-    const passwordInputs = [
+    const passwordInputs = useMemo(() => [
         {
             title: 'Current password',
             placeholder: 'Enter your current password',
@@ -142,10 +142,11 @@ function Password(props) {
             message: "Passwords don't match",
             button: true
         }
-    ]
+    ], [password, serverOK, newPass, newPassValid, legitMessage, confirmPass, newPassMatch, setPassword, setServerOK, setNewPass, passLegit, setConfirmPass])
 
     // 
-    const renderChange = passwordInputs.map((element, index) =>
+    const renderChange = useMemo(() => 
+        passwordInputs.map((element, index) =>
         <>
             <label
                 className='profile-change-password'
@@ -187,6 +188,8 @@ function Password(props) {
                 </button>
             : null}
         </>
+        ), 
+        [passwordInputs, t, allFilled, allValid, changePass]
     )
 
     // 

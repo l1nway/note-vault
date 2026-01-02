@@ -1,6 +1,6 @@
 import './notesList.css'
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {useLocation} from 'react-router'
 import Cookies from 'js-cookie'
 
@@ -23,6 +23,7 @@ function notesLogic(props) {
         setNotesError, notesError,
         notesLoading, setNotesLoading,
         setNotesMessage, notesMessage,
+        category, tag, search,
         setVisibility,
         setSavings,
         setClarifyLoading,
@@ -69,23 +70,20 @@ function notesLogic(props) {
         }
     }, [online, offlineMode, token])
 
-    const category = props.category?.id ? `?category_id=${props.category.id}` : ''
-    const tag = props.tag?.id ? `?tag_id=${props.tag.id}` : ''
-    const search = props.search || ''
+    const queryString = useMemo(() => {
+        const params = []
+        
+        if (props.category?.id)
+            params.push(`category_id=${props.category.id}`)
+        
+        if (props.tag?.id)
+            params.push(`tag_id=${props.tag.id}`)
 
-    const params = []
-
-    if (props.category?.id)
-        params.push(`category_id=${props.category.id}`)
-    
-    if (props.tag?.id)
-        params.push(`tag_id=${props.tag.id}`)
-
-    if (props.search)
-        params.push(`q=${search}`)
-    //     
-
-    const queryString = params.length ? `?${params.join('&')}` : ''
+        if (props.search)
+            params.push(`q=${props.search}`)
+        
+        return params.length ? `?${params.join('&')}` : ''
+    }, [props.category?.id, props.tag?.id, props.search])
 
     // gets a list of notes from the server
     const getNotes = async () => {

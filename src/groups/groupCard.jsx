@@ -19,8 +19,6 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
     const {animating, savings, savingErrors, retryFunction} = clarifyStore()
     const {undo, pendings} = pendingStore()
     
-    console.log('pendings', pendings)
-    
     const {catsView, setCatsView} = groupsLogic()
     
     const pending = useMemo(

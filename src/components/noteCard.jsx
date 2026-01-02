@@ -1,5 +1,6 @@
 import '../notes/notesList.css'
 
+import {useMemo} from 'react'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {Link, useLocation} from 'react-router'
 import MDEditor from '@uiw/react-md-editor'
@@ -19,15 +20,15 @@ function noteCard({note, onAction}) {
     
     const {undo, pendings} = pendingStore()
 
-    const pending = pendings.find(p => p.id == note.id)
-    const isPending = Boolean(pending)
+    const pending = useMemo(() => pendings.find(p => p.id == note.id), [pendings, note.id])
+    const isPending = useMemo(() => Boolean(pending), [pending])
 
-    const pendingAction = pending?.action
+    const pendingAction = useMemo(() => pending?.action, [pending])
 
     const {savings, savingErrors, retryFunction} = clarifyStore()
     const {notesView} = notesViewStore()
 
-    const allActions = {
+    const allActions = useMemo(() => ({
         notes: [
             {type: 'archive', icon: faBoxArchiveSolid},
             {type: 'delete', icon: faTrashSolid}
@@ -39,7 +40,42 @@ function noteCard({note, onAction}) {
         trash: [
             {type: 'restore', icon: faTrashCanArrowUp},
             {type: 'force', icon: faTrashSolid}
-    ]}
+        ]
+    }), [])
+
+    const renderButtons = useMemo(() => 
+        allActions[path]?.map((action, index) => (
+            <FontAwesomeIcon
+                key={action.type}
+                icon={action.icon}
+                className={index == 0 ? 'button-archive' : 'button-delete'}
+                tabIndex='0'
+                onClick={e => {
+                    e.preventDefault()
+                    if (isPending) return
+                    onAction(action.type, note.id)
+                }}
+            />
+        )), 
+        [allActions, path, isPending, onAction, note.id]
+    )
+
+    const renderTags = useMemo(() => 
+        note.tags?.map((tagElement, index) => (
+            <div
+                key={index}
+                className='note-tag'
+                onClick={(e) => {
+                    e.preventDefault()
+                    if (props.setTag) {
+                        props.setTag(tagElement)
+                    }
+                }}
+            >
+                {tagElement.name}
+            </div>
+        ))
+    )
 
     return (
         <Link
@@ -72,19 +108,7 @@ function noteCard({note, onAction}) {
                 <div
                     className='note-buttons'
                 >
-                    {allActions[path]?.map((action, index) => (
-                        <FontAwesomeIcon
-                            key={action.type}
-                            icon={action.icon}
-                            className={index == 0 ? 'button-archive' : 'button-delete'}
-                            tabIndex='0'
-                            onClick={e => {
-                                e.preventDefault()
-                                if (isPending) return
-                                onAction(action.type, note.id)
-                            }}
-                        />
-                    ))}
+                    {renderButtons}
                 </div>
             </SlideDown>
             <div
@@ -125,20 +149,18 @@ function noteCard({note, onAction}) {
                             />
                         </SlideLeft>
                         <SlideLeft
-                            visibility={pendings.some(p => p.id == note.id)}
+                            visibility={isPending}
                         >
                             <FontAwesomeIcon
                                 className='loading-save-icon --restore'
                                 icon={
-                                    pendings?.find(
-                                        p => p.id == note.id
-                                    )?.action == 'archive'
+                                    pendingAction == 'archive'
                                         ? faBoxOpen
                                         : faTrashCanArrowUp
-                                    }
+                                }
                                 onClick={(e) => {
                                     e.preventDefault()
-                                    undo(pending.pendingId)
+                                    undo(pending?.pendingId)
                                 }}
                             />
                         </SlideLeft>
@@ -201,19 +223,7 @@ function noteCard({note, onAction}) {
                             <div
                                 className='note-tags'
                             >
-                                {note.tags?.map((tagElement, index) => (
-                                    <div
-                                        key={index}
-                                        className='note-tag'
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            setNotesLoading(true)
-                                            props.setTag(tagElement)
-                                        }}
-                                    >
-                                        {tagElement.name}
-                                    </div>
-                                ))}
+                                {renderTags}
                             </div>
                         : null}
                     </div>

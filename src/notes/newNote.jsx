@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {useTranslation} from 'react-i18next'
 import {useLocation} from 'react-router'
-import {useState} from 'react'
+import {useState, useMemo} from 'react'
 
 import {faArrowUp as faArrowUpSolid, faFloppyDisk, faXmark, faTriangleExclamation, faSpinner, faRotateRight, faSignal, faPlane, faPlaneCircleCheck} from '@fortawesome/free-solid-svg-icons'
 
@@ -49,7 +49,7 @@ function NewNote() {
 
     const [offline, setOffline] = useState(Cookies.get('offline') == 'true')
 
-    const hotkeys = [{
+    const hotkeys = useMemo(() => [{
         key: 'mod+z, esc',
         trigger: () => navigate(-1)
     },{
@@ -73,15 +73,18 @@ function NewNote() {
             markdownRef.current?.focus()
             markdownToggle()
         }
-    }]
+    }], [navigate, saveButton, inputRef, selectRef, setVisibility, tagRef, markdownRef, markdownToggle])
 
-    const renderHotkeys = hotkeys.map((element, index) =>
+    const renderHotkeys = useMemo(() => 
+        hotkeys.map((element, index) =>
         <Hotkey
             key={index}
             keys={element.key}
             onTrigger={element.trigger}
             enabled={element.enabled}
         />
+        ), 
+        [hotkeys]
     )
 
     return (

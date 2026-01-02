@@ -1,5 +1,6 @@
 import './trash.css'
 
+import {useMemo} from 'react'
 import {OverlayScrollbarsComponent} from 'overlayscrollbars-react'
 import 'overlayscrollbars/overlayscrollbars.css'
 import ContentLoader from 'react-content-loader'
@@ -45,13 +46,16 @@ function Trash() {
       openAnim(type)
   }
 
-  const renderTrash = trash?.map((element, index) =>
-    <NoteCard
-      key={element.id}
-      note={element}
-      onAction={handleAction}
-    />
-    )
+  const renderTrash = useMemo(() => 
+    trash?.map((element, index) =>
+        <NoteCard
+            key={element.id}
+            note={element}
+            onAction={handleAction}
+        />
+    ), 
+    [trash, handleAction]
+  )
 
   return (
     <div

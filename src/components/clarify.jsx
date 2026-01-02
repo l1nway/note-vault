@@ -1,6 +1,6 @@
 import './clarify.css'
 
-import {forwardRef, useImperativeHandle, useState} from 'react'
+import {forwardRef, useImperativeHandle, useState, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 
 import ClarifyView from './clarifyView'
@@ -16,7 +16,7 @@ import useClarifyLogic from './useClarifyLogic'
         const {loadingError} = state
 
         // color storage (used only for categories)
-        const colors = ['#1E90FF', '#32CD32', '#8A2BE2', '#FF8C00', '#FF1493', '#008B8B', '#3CB371', '#DC143C', '#9370DB', '#66CDAA']
+        const colors = useMemo(() => ['#1E90FF', '#32CD32', '#8A2BE2', '#FF8C00', '#FF1493', '#008B8B', '#3CB371', '#DC143C', '#9370DB', '#66CDAA'], [])
 
         // for the future; implement saving of the last used colors
         const [recentColors, setRecentColors] = useState([{
@@ -25,23 +25,26 @@ import useClarifyLogic from './useClarifyLogic'
         }])
 
         // displays a list of colors
-        const renderColors = colors.map((value, index) => 
-            <label
-                className='color-element'
-                style={{'--color-value' : value}}
-                tabIndex='0'
-                key={index}
-            >
-                <input
-                    disabled={loadingError}
-                    className='color-radio'
-                    type='radio'
-                    name='color'
-                    checked={props.color == value}
-                    onClick={() => props.color == value ? props.setColor(null) : props.setColor(value)}
-                    onChange={() => props.color == value ? props.setColor(null) : props.setColor(value)}
-                />
-            </label>
+        const renderColors = useMemo(() => 
+            colors.map((value, index) => 
+                <label
+                    className='color-element'
+                    style={{'--color-value' : value}}
+                    tabIndex='0'
+                    key={index}
+                >
+                    <input
+                        disabled={loadingError}
+                        className='color-radio'
+                        type='radio'
+                        name='color'
+                        checked={props.color == value}
+                        onClick={() => props.color == value ? props.setColor(null) : props.setColor(value)}
+                        onChange={() => props.color == value ? props.setColor(null) : props.setColor(value)}
+                    />
+                </label>
+            ), 
+            [colors, loadingError, props.color, props.setColor]
         )
         // 
 

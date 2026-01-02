@@ -1,5 +1,6 @@
 import './groups.css'
 
+import {useMemo} from 'react'
 import ContentLoader from 'react-content-loader'
 import {useTranslation} from 'react-i18next'
 
@@ -24,16 +25,19 @@ function Groups() {
 
     const {path, loading, catsView, setCatsView, listView, elementID, setElementID, color, setColor, name, setName, openAnim, clarifyRef, gridRef, listRef, getGroups} = groupsLogic()
 
-    const renderGroups = ({tags, categories}[path] || []).map((element) =>
-        <GroupCard
-            key={element.id}
-            element={element}
-            openAnim={openAnim}
-            setElementID={setElementID}
-            setName={setName}
-            setColor={setColor}
-        />
-    )
+    const renderGroups = useMemo(() => {
+        const items = path == 'tags' ? tags : categories
+        return (items || []).map((element) =>
+            <GroupCard
+                key={element.id}
+                element={element}
+                openAnim={openAnim}
+                setElementID={setElementID}
+                setName={setName}
+                setColor={setColor}
+            />
+        )
+    }, [path, tags, categories, openAnim, setElementID, setName, setColor])
 
     return(
         <div

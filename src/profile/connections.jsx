@@ -1,6 +1,6 @@
 import './connections.css'
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 import Cookies from 'js-cookie'
 
@@ -14,7 +14,7 @@ function Connections() {
 
     const {t} = useTranslation()
 
-    const connected = [
+    const connected = useMemo(() => [
         {
             name: 'google',
             icon: faGoogle,
@@ -30,9 +30,10 @@ function Connections() {
             date: '21-12-2025',
             active: true
         }
-    ]
+    ], [])
 
-    const renderAccs = connected.map((element, index) =>
+    const renderAccs = useMemo(() => 
+        connected.map((element, index) =>
         <div
             className='profile-connected-accs'
             key={index}
@@ -87,6 +88,8 @@ function Connections() {
                 </button>
             </div>
         </div>
+        ), 
+        [connected, t]
     )
 
     return (
