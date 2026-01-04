@@ -170,8 +170,8 @@ const useOfflineSync = () => {
 
                     entities[entity].set(prev =>
                         prev.map(n =>
-                            n.id === id || n.tempId === id
-                                ? { ...n, syncing: true }
+                            n.id == id || n.tempId == id
+                                ? {...n, syncing: true}
                                 : n
                         )
                     )

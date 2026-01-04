@@ -13,19 +13,24 @@ export const appStore = create(
     (set, get) => ({
       online: navigator.onLine,
       offlineMode: false,
+      guestMode: false,
       offlineActions: [],
       isSyncing: false,
       notes: [],
+      noteInfo: [],
       tags: [],
       categories: [],
       archive: [],
       trash: [],
 
       setOnline: (status) => set({online: status}),
-      setOfflineMode: (status) => set({ offlineMode: status }),
+      setOfflineMode: (status) => set({offlineMode: status}),
+      setGuestMode: (status) => set({guestMode: status}),
       setIsSyncing: (v) => set({isSyncing: v}),
       setNotes: (fn) =>
         typeof fn == 'function' ? set(state => ({notes: fn(state.notes)})) : set({notes: fn}),
+      setNoteInfo: (fn) =>
+        typeof fn == 'function' ? set(state => ({noteInfo: fn(state.noteInfo)})) : set({noteInfo: fn}),
       setTags: (fn) =>
         typeof fn == 'function' ? set(state => ({tags: fn(state.tags)})) : set({tags: fn}),
       setCategories: (fn) =>
@@ -131,8 +136,6 @@ export const clarifyStore = create((set) => ({
   clarifyLoading: true,
   loadingError: false,
   loadingErrorMessage: '',
-  savings: {},
-  savingErrors: {},
   retryFunction: null,
   currentElementId: null,
 
@@ -143,23 +146,6 @@ export const clarifyStore = create((set) => ({
   setClarifyLoading: (clarify) => set({clarifyLoading: clarify}),
   setLoadingError: (clarify) => set({loadingError: clarify}),
   setLoadingErrorMessage: (clarify) => set({loadingErrorMessage: clarify}),
-  setSavings: (update) => set((state) => ({
-      savings: typeof update == 'function' ? update(state.savings) : update 
-  })),
-    setSavingErrors: (update) => set((state) => ({
-      savingErrors: typeof update == 'function' ? update(state.savingErrors) : update 
-  })),
-    removeSavingError: (id, path) => set((state) => {
-    if (!path || !state.savingErrors[path]) return state
-    const newPathErrors = { ...state.savingErrors[path]}
-    delete newPathErrors[id]
-    return {
-        savingErrors: {
-            ...state.savingErrors,
-            [path]: newPathErrors
-        }
-    }
-}),
   setRetryFunction: (fn) => set({retryFunction: fn}),
   setCurrentElementId: (id) => set({currentElementId: id})
 }))

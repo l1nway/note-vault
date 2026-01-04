@@ -13,6 +13,7 @@ import {apiStore, appStore} from '../store'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import Hotkey from '../components/hotkey'
+import {shake} from '../components/shake'
 
 import NoteEditor from './noteEditor'
 import NoteForm from './noteForm'
@@ -26,12 +27,12 @@ function NewNote() {
 
     const {state, actions, refs} = NoteEditor()
     const {loading, saving, errors, note} = state
-    const {navigate, clearInputs, newNote, modifyNote, inputShake, markdownToggle, retryLoad, setVisibility, setErrors} = actions
+    const {navigate, clearInputs, newNote, modifyNote, markdownToggle, retryLoad, setVisibility, setErrors} = actions
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
     const saveButton = () => {
         if (note.name == '') {
-            inputShake(inputRef)
+            shake(inputRef.current)
             setErrors(prev => ({
                 ...prev,
                 input: true

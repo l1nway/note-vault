@@ -31,9 +31,7 @@ function groupsLogic() {
         action, setAction,
         setVisibility,
         animating, setAnimating,
-        savings, setSavings,
         loadingError, loadingErrorMessage,
-        savingErrors, setSavingErrors,
         setLoadingError,
         setLoadingErrorMessage,
         setClarifyLoading,
@@ -43,7 +41,6 @@ function groupsLogic() {
 
     const getGroups = async () => {
         setLoading(true)
-        setSavings(prev => ({...prev, [path]: true}))
         try {
             const res = await fetch(`http://api.notevault.pro/api/v1/${path}`, {
                 method: 'GET',
@@ -57,14 +54,11 @@ function groupsLogic() {
             const resData = await res.json()
 
             setLoading(false)
-            setSavings(prev => ({ ...prev, [path]: false }))
             setLoadingError(false)
         } catch (error) {
             setLoadingErrorMessage(error)
             setLoading(false)
-            setSavings(prev => ({...prev, [path]: false}))
             if (elementID == '') setLoadingError(true)
-            else setSavingErrors(prev => ({...prev, [path]: true}))
     }}
 
     useEffect(() => {
@@ -147,8 +141,7 @@ function groupsLogic() {
 
         openAnim,
 
-        savings,
-        savingErrors,
+
         retryFunction,
 
         tags,

@@ -1,5 +1,5 @@
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faXmark, faSpinner, faTriangleExclamation, faArrowUp as faArrowUpSolid, faBookmark as faBookmarkSolid} from '@fortawesome/free-solid-svg-icons'
 import {ColorPicker, useColor} from 'react-color-palette'
@@ -10,6 +10,7 @@ import SlideLeft from './slideLeft'
 import {pendingStore, apiStore, appStore} from '../store'
 import {clarifyValue} from './clarifyTexts'
 import SlideDown from './slideDown'
+import {shake, clearShake} from '../components/shake'
 
 const ClarifyView = ({t, logic, props, renderColors}) => {
 
@@ -19,20 +20,23 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
     const {state, actions, pathData} = logic
     const {action, clarifyLoading, loadingError} = state
     const {path, effectivePath} = pathData
-    const {closeAnim, get, setLoadingError, setClarifyLoading, offlineChange,
-            change, removeSavingError} = actions
+    const {closeAnim, get, setLoadingError, setClarifyLoading, offlineChange, change} = actions
 
     const clarify = clarifyValue[effectivePath]?.[action]
 
     const {schedule} = pendingStore()
-
-    const [inputNull] = useState(false)
 
     const [color, setColor] = useColor(props.color ? props.color : 'white')
 
     const [picker, setPicker] = useState(false)
 
     const [save, setSave] = useState(false)
+
+    const disabled = loadingError || (!offlineMode && !online) || clarifyLoading || ((action == 'new' || action == 'edit') && props.name == '')
+
+    const inputRef = useRef(null)
+
+    const [inputNull, setInputNull] = useState(false)
 
     useEffect(() => {
         props?.setColor?.(color?.hex)
@@ -104,17 +108,33 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                 </span>
 
                 {(action == 'edit' || action == 'new') ? (
-                    <input
-                        className={`clarify-input ${inputNull && --animated-error}`}
-                        disabled={loadingError || (!offlineMode && !online)}
-                        value={props.name}
-                        onChange={e => props.setName(e.target.value)}
-                        placeholder={
-                            path == 'categories'
-                                ? t('e.g. work, personal, ideas')
-                                : t('e.g. urgent, ideas, review')
-                        }
-                    />
+                    <>
+                        <input
+                            className='clarify-input'
+                            disabled={loadingError || (!offlineMode && !online)}
+                            ref={inputRef}
+                            value={props.name}
+                            onChange={e => {
+                                props.setName(e.target.value)
+                                setInputNull(false)
+                                clearShake(inputRef.current)
+                            }}
+                            placeholder={
+                                path == 'categories'
+                                    ? t('e.g. work, personal, ideas')
+                                    : t('e.g. urgent, ideas, review')
+                            }
+                        />
+                        <SlideDown
+                            visibility={inputNull}
+                        >
+                            <span
+                                className='clarify-inputnull'
+                            >
+                                {t('Field cannot be empty')}
+                            </span>
+                        </SlideDown>
+                    </>
                 ) : null}
             </label>
 
@@ -211,20 +231,20 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                         props?.setColor?.('')
                         props?.setID?.('')
                         setClarifyLoading(true)
-                        removeSavingError(props.id, path)
                     }}
                 >
                     {t('cancel')}
                 </button>
 
                 <button
-                    disabled={
-                        loadingError || (!offlineMode && !online) || clarifyLoading ||
-                        (action == 'new' || action == 'edit')
-                            ? props.name == ''
-                            : null
-                    }
+                    className={`clarify-action ${disabled && 'clarify-action-disabled'}`}
                     onClick={() => {
+                        if (disabled) {
+                            setInputNull(true)
+                            shake(inputRef.current)
+                            return
+                        }
+
                         const context = {
                             id: props.id,
                             action: action,
@@ -249,13 +269,11 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
 
                             closeAnim()
                         }
-                        removeSavingError(props.id, path)
                         
                         props?.setName?.('')
                         props?.setColor?.('')
                         props?.setID?.('')
                     }}
-                    className='clarify-action'
                     style={
                         (action == 'delete' || action == 'force')
                             ? {

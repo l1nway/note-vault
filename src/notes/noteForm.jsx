@@ -20,19 +20,15 @@ function NoteForm({state, actions, refs}) {
 
     const {t} = useTranslation()
 
-    const {
-        loading, errors, note, visibility
-    } = state
-    const {
-        setVisibility, selectTag, markdownToggle, retryLoad, setNote, setErrors
-    } = actions
+    const {loading, errors, note, visibility} = state
+    const {setVisibility, selectTag, markdownToggle, retryLoad, setNote, setErrors} = actions
 
     const {categories, tags} = appStore()
 
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
     const tagsDisabled = useMemo(
-        () => (tags?.length ?? 0) === 0,
+        () => (tags?.length ?? 0) == 0,
         [tags]
     )
 
@@ -97,9 +93,7 @@ function NoteForm({state, actions, refs}) {
                     onChange={() => selectTag(element)}
                 />
             </div>
-        ), 
-        [tags, t, selectTag, note.selectedTags, tagRef]
-    )
+        ), [tags, t, selectTag, note.selectedTags, tagRef])
 
     return (
         <form

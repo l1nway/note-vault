@@ -21,12 +21,16 @@ function Groups() {
     const online = apiStore(state => state.online)
 
     const {offlineMode, setOfflineMode, tags, categories} = appStore()
-    const {action, savings, loadingError, loadingErrorMessage, savingErrors, retryFunction} = clarifyStore()
+    const {action, loadingError, loadingErrorMessage, retryFunction} = clarifyStore()
 
     const {path, loading, catsView, setCatsView, listView, elementID, setElementID, color, setColor, name, setName, openAnim, clarifyRef, gridRef, listRef, getGroups} = groupsLogic()
 
+    const items = useMemo(
+        () => (path == 'tags' ? tags : categories),
+        [path, tags, categories]
+    )
+
     const renderGroups = useMemo(() => {
-        const items = path == 'tags' ? tags : categories
         return (items || []).map((element) =>
             <GroupCard
                 key={element.id}
@@ -35,9 +39,10 @@ function Groups() {
                 setElementID={setElementID}
                 setName={setName}
                 setColor={setColor}
+                listView={listView}
             />
         )
-    }, [path, tags, categories, openAnim, setElementID, setName, setColor])
+    }, [items, openAnim, setElementID, setName, setColor])
 
     return(
         <div
@@ -56,19 +61,15 @@ function Groups() {
                         {t(path)}
                     </h1>
                     <SlideLeft
-                        visibility={savings[path]}
+                        visibility={items.some(item => item?.saving == true)}
                     >
                         <FontAwesomeIcon
                             className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
                             icon={retryFunction == 'delete' ? faTrashCan : faFloppyDisk}
-                            onClick={() => console.log(savingErrors)}
                         />
                     </SlideLeft>
                     <SlideLeft
-                        visibility={(
-                            Object.keys(savingErrors[path] || {}).length > 0) ||
-                            loadingError
-                    }
+                        visibility={loadingError || items.some(item => item?.error == true)}
                     >
                         <FontAwesomeIcon
                             className='loading-error-icon'
@@ -76,7 +77,7 @@ function Groups() {
                         />
                     </SlideLeft>
                     <SlideLeft
-                        visibility={!savingErrors}
+                        visibility={false}
                     >
                         <span
                             className='notes-error-text'

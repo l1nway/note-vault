@@ -1533,6 +1533,7 @@ button:focus {
     color: var(--def-white);
     transition: 300ms border, 300ms background-color;
     margin: 1vw 0vw;
+    cursor: help;
 
     @media (max-width: 1024px) {
         border: 1vw solid var(--del-btn-hvr);

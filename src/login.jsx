@@ -10,6 +10,7 @@ import {Link} from 'react-router'
 import authLogic from './authLogic'
 
 import SlideDown from './components/slideDown'
+import SlideLeft from './components/slideLeft'
 
 function Login() {
 
@@ -17,6 +18,7 @@ function Login() {
 
     const {
         path, text, online,
+        guestMode, setGuestMode,
 
         name, setName,
         email, setEmail,
@@ -38,8 +40,10 @@ function Login() {
     } = authLogic()
 
     return(
-        <>
-            <SlideDown
+        <div
+            className='auth-page'
+        >
+            <SlideLeft
                 visibility={!online}
             >
                 <Link
@@ -79,7 +83,7 @@ function Login() {
                         </span>
                     </div>
                 </Link>
-            </SlideDown>
+            </SlideLeft>
             <SlideDown
                 visibility={online}
             >
@@ -124,7 +128,7 @@ function Login() {
                             className='login-values'
                         >
                             {path == 'register' ?
-                                <div
+                                <label
                                     className='login-email'
                                 >
                                     <p
@@ -138,9 +142,9 @@ function Login() {
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                     />
-                                </div>
+                                </label>
                             : null}
-                            <div
+                            <label
                                 className='login-email'
                             >
                                 <p
@@ -160,7 +164,7 @@ function Login() {
                                         setServerError(false)
                                     }}
                                 />
-                            </div>
+                            </label>
                             <SlideDown
                                 visibility={emailError}
                             >
@@ -170,7 +174,7 @@ function Login() {
                                     {t('enter a valid email address')}
                                 </div>
                             </SlideDown>
-                            <div
+                            <label
                                 className='login-password'
                             >
                                 <p
@@ -190,7 +194,7 @@ function Login() {
                                         setServerError(false)
                                     }}
                                 />
-                            </div>
+                            </label>
                             <SlideDown
                                 visibility={passError}
                             >
@@ -210,7 +214,7 @@ function Login() {
                                 </div>
                             </SlideDown>
                             {path == 'register' ? <>
-                                <div
+                                <label
                                     className='login-password'
                                 >
                                     <p
@@ -224,7 +228,7 @@ function Login() {
                                         value={confirm}
                                         onChange={(e) => setConfirm(e.target.value)}
                                     />
-                                </div>
+                                </label>
                                 <SlideDown
                                     visibility={!passMatch}
                                 >
@@ -327,6 +331,23 @@ function Login() {
 
                             <Link
                                 className='create-account'
+                                onClick={() => setGuestMode(true)}
+                                to='/notes'
+                            >
+                                <p
+                                    className='create-text'
+                                >
+                                    {t('wish to continue without an account?')}
+                                </p>
+                                <p
+                                    className='create-link'
+                                >
+                                    {t("let's try")}
+                                </p>
+                            </Link>
+
+                            <Link
+                                className='create-account'
                                 to={path == 'login' ? '/register' : '/login'}
                             >
                                 <p
@@ -336,7 +357,6 @@ function Login() {
                                 </p>
                                 <p
                                     className='create-link'
-                                    to='/register'
                                 >
                                     {t(text.altact)}
                                 </p>
@@ -345,7 +365,7 @@ function Login() {
                     </div>
                 </div>
             </SlideDown>
-        </>
+        </div>
     )
 }
 

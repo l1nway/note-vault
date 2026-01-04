@@ -8,15 +8,16 @@ import {useTranslation} from 'react-i18next'
 
 import {faTrashCanArrowUp, faTrash as faTrashSolid, faBoxArchive as faBoxArchiveSolid, faFloppyDisk, faTriangleExclamation, faTrashCan, faBoxOpen, faServer, faTowerBroadcast} from '@fortawesome/free-solid-svg-icons'
 
-import {clarifyStore, notesViewStore, pendingStore} from '../store'
+import {clarifyStore, notesViewStore, pendingStore, appStore} from '../store'
 
 import SlideLeft from '../components/slideLeft'
 import SlideDown from './slideDown'
 
-function noteCard({note, onAction}) {
+function noteCard({note, onAction, setCategory, setTag}) {
     const location = useLocation()
     const path = location.pathname.slice(1)
     const {t, i18n} = useTranslation()
+    const {setNoteInfo, notes} = appStore()
     
     const {undo, pendings} = pendingStore()
 
@@ -25,7 +26,7 @@ function noteCard({note, onAction}) {
 
     const pendingAction = useMemo(() => pending?.action, [pending])
 
-    const {savings, savingErrors, retryFunction} = clarifyStore()
+    const {retryFunction} = clarifyStore()
     const {notesView} = notesViewStore()
 
     const allActions = useMemo(() => ({
@@ -41,7 +42,7 @@ function noteCard({note, onAction}) {
             {type: 'restore', icon: faTrashCanArrowUp},
             {type: 'force', icon: faTrashSolid}
         ]
-    }), [])
+    }))
 
     const renderButtons = useMemo(() => 
         allActions[path]?.map((action, index) => (
@@ -56,9 +57,7 @@ function noteCard({note, onAction}) {
                     onAction(action.type, note.id)
                 }}
             />
-        )), 
-        [allActions, path, isPending, onAction, note.id]
-    )
+    )))
 
     const renderTags = useMemo(() => 
         note.tags?.map((tagElement, index) => (
@@ -67,15 +66,12 @@ function noteCard({note, onAction}) {
                 className='note-tag'
                 onClick={(e) => {
                     e.preventDefault()
-                    if (props.setTag) {
-                        props.setTag(tagElement)
-                    }
+                    setTag(tagElement)
                 }}
             >
                 {tagElement.name}
             </div>
-        ))
-    )
+    )))
 
     return (
         <Link
@@ -92,6 +88,9 @@ function noteCard({note, onAction}) {
                 if (isPending || path != 'notes') {
                     e.preventDefault()
                     undo(pending.pendingId)
+                    return
+                } else {
+                    setNoteInfo(notes.find(n => n.id == note.id))
                 }
             }}
         >
@@ -126,7 +125,7 @@ function noteCard({note, onAction}) {
                             {t(note.title)}
                         </h2>
                         <SlideLeft
-                            visibility={savings[note.id]}
+                            visibility={note.saving}
                         >
                             <FontAwesomeIcon
                                 className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
@@ -134,7 +133,7 @@ function noteCard({note, onAction}) {
                             />
                         </SlideLeft>
                         <SlideLeft
-                            visibility={savingErrors[note.id] || note.id.error}
+                            visibility={note.error}
                         >
                             <FontAwesomeIcon
                                 className='loading-error-icon'
@@ -142,9 +141,9 @@ function noteCard({note, onAction}) {
                                 onClick={(e) => {
                                     e.preventDefault()
                                     setElementID(note.id)
-                                    openAnim(savingErrors[note.id].action)
-                                    setName(savingErrors[note.id].name)
-                                    setColor(savingErrors[note.id].color)
+                                    // openAnim()
+                                    // setName()
+                                    // setColor()
                                 }}
                             />
                         </SlideLeft>
@@ -205,8 +204,7 @@ function noteCard({note, onAction}) {
                                 style={{backgroundColor: note.category.color}}
                                 onClick={(e) => {
                                     e.preventDefault()
-                                    setNotesLoading(true)
-                                    props.setCategory(note.category)
+                                    setCategory(note.category)
                                 }}
                             >
                                 <div

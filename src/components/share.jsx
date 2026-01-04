@@ -1,6 +1,6 @@
 import './share.css'
 
-import {useState, useRef} from 'react'
+import {useState, useRef, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'

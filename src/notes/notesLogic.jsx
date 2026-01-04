@@ -25,7 +25,6 @@ function notesLogic(props) {
         setNotesMessage, notesMessage,
         category, tag, search,
         setVisibility,
-        setSavings,
         setClarifyLoading,
         setRetryFunction
     } = clarifyStore()
@@ -41,53 +40,28 @@ function notesLogic(props) {
             token !== 'null'
     )
 
-    useEffect(() => {
-        console.log('notes updated on NotesPage', notes)
-    }, [notes])
-
-    useEffect(() => {
-        if (online) {
-            setOfflineMode(false)
-            // token && getNotes()
-            !token && setNotesLoading(false)
-            setNotesLoading(false)
-        }
-
-        if (!online && !offlineMode) {
-            console.log('нет инета и оффлайн режима')
-            if (Cookies.get('offline') != 'true') {
-                setNotesError(true)
-                setNotesMessage('No internet connection')
-                setNotesLoading(false)
-                return
-            }
-            setOfflineMode(true)
-        }
-
-        if (offlineMode) {
-            setNotesError(false)
-            setNotesLoading(false)
-        }
-    }, [online, offlineMode, token])
+    const [page, setPage] = useState(1)
+    const [lastPage, setLastPage] = useState(0)
 
     const queryString = useMemo(() => {
         const params = []
         
-        if (props.category?.id)
-            params.push(`category_id=${props.category.id}`)
+        if (category?.id)
+            params.push(`category_id=${category.id}`)
         
-        if (props.tag?.id)
-            params.push(`tag_id=${props.tag.id}`)
+        if (tag?.id)
+            params.push(`tag_id=${tag.id}`)
 
-        if (props.search)
-            params.push(`q=${props.search}`)
+        if (search)
+            params.push(`q=${search}`)
+
+        params.push(`page=${page}`)
         
         return params.length ? `?${params.join('&')}` : ''
-    }, [props.category?.id, props.tag?.id, props.search])
+    }, [category?.id, tag?.id, search, page])
 
     // gets a list of notes from the server
     const getNotes = async () => {
-        console.log('запущен поиск заметок')
         try {
             setNotesLoading(true)
             setNotesError(false)
@@ -103,75 +77,47 @@ function notesLogic(props) {
         })
 
         if (!res.ok) throw new Error('Fetch failed')
-
+        
         const resData = await res.json()
+        page == 1 ? setNotes(resData.data) : setNotes(prev => [...prev, ...resData.data])
         console.log(resData.data)
-        setNotes(resData.data)
-        const serverNotes = resData.data
 
-        const serverMap = {}
-        serverNotes.forEach(note => {
-            serverMap[note.id] = note
-        })
-
-        const mergedNotes = []
-
-        notes.forEach(localNote => {
-            const serverNote = localNote.id ? serverMap[localNote.id] : null
-
-            if (serverNote) {
-                mergedNotes.push({
-                    ...localNote,
-                    ...serverNote,
-                    syncing: localNote.syncing || false,
-                    offline: localNote.offline || false,
-                    syncAction: localNote.syncAction || null
-                })
-                delete serverMap[localNote.id]
-            } else {
-                mergedNotes.push(localNote)
-            }
-        })
-
-        Object.values(serverMap).forEach(note => mergedNotes.push(note))
-
-        const hasChanges = (() => {
-            if (mergedNotes.length !== notes.length) return true
-
-            const localMap = {}
-            notes.forEach(note => {
-                if (note.id) localMap[note.id] = note.updated_at
-            })
-
-            for (const note of mergedNotes) {
-                if (!note.id) continue
-                if (!(note.id in localMap)) return true
-                if (note.updated_at !== localMap[note.id]) return true
-            }
-
-            return false
-        })()
-
-        if (hasChanges) {
-            console.log('differences between the notes')
-        } else {
-            console.log('no differences between the notes')
-        }
-
-        // queryString ? setFilteredNotes(mergedNotes) : setNotes(mergedNotes)
-        queryString ? console.log('фильтр') : console.log('полный список')
-
-        setSavings(prev => ({...prev, [path]: false}))
-        setNotesLoading(false)
+        setLastPage(resData.last_page)
     } catch (error) {
         setNotesMessage(error.message)
-        setNotesLoading(false)
         setNotesError(true)
+    } finally {
+        setNotesLoading(false)
     }}
 
     useEffect(() => {
-        // if (online && token) getNotes()
-    },[category, tag, search])
+        setPage(1)
+    }, [category, tag, search])
+
+    useEffect(() => {
+        if (online && token) {
+            getNotes()
+        }
+    }, [queryString, online, token])
+
+    useEffect(() => {
+        if (online) {
+            setOfflineMode(false)
+        } else if (!offlineMode) {
+            if (Cookies.get('offline') != 'true') {
+                setNotesError(true)
+                setNotesMessage('No internet connection')
+            } else {
+                setOfflineMode(true)
+            }
+        }
+    }, [online])
+
+    const loadMore = () => {
+        if (page < lastPage) {
+            setPage(prev => prev + 1)
+        }
+    }
 
     const openAnim = (action) => {
         if (animating == true) {
@@ -201,7 +147,10 @@ function notesLogic(props) {
         getNotes,
         openAnim,
         filteredNotes,
-        queryString
+        queryString,
+        loadMore,
+        page,
+        lastPage
     }
 }
 

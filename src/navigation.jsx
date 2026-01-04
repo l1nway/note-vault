@@ -1,5 +1,5 @@
 import {useEffect, useState, useRef, createRef, useMemo} from 'react'
-import {Link, useLocation, Route, Routes, useNavigate} from 'react-router'
+import {Link, useLocation, Route, Routes, useNavigate, Navigate} from 'react-router'
 import {useTranslation} from 'react-i18next'
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
 import Cookies from 'js-cookie'
@@ -21,8 +21,8 @@ import {profileStore} from './store'
 
 import Profile from './profile/profile'
 import Notes from './notes/notes'
-  import NewNote from './notes/newNote'
-  import Note from './notes/note'
+    import NewNote from './notes/newNote'
+    import Note from './notes/note'
 import Groups from './groups/groups'
 import Trash from './trash/trash'
 
@@ -49,7 +49,7 @@ function Navigation() {
     const token = storedValue('token')
 
     // list of endpoints from which to get the number of objects
-    const endpoints = useMemo(() => ['notes', 'categories', 'tags', 'notes?archived=true', 'notes?deleted=true'], [])
+    const endpoints = useMemo(() => ['notes', 'categories', 'tags', 'notes?archive=true', 'notes?deleted=true'])
 
     // object with the number of objects at each endpoint
     const [amount, setAmount] = useState({})
@@ -193,7 +193,7 @@ function Navigation() {
             icon: faTagSolid,
             color: 'azure'
         },{
-            title: 'archived',
+            title: 'archive',
             link: '/archived',
             icon: faBoxArchiveSolid,
             color: '#ffdaaa'
@@ -395,6 +395,7 @@ function Navigation() {
                             <Routes
                                 location={location}
                             >
+                                <Route path="*" element={<Navigate to='/notes' replace/>}/>
                                 <Route path='profile' element={<Profile/>}/>
                                 <Route path='notes' element={<Notes/>}/>
                                     <Route path='notes/new' element={<NewNote/>}/>

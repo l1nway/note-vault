@@ -1,6 +1,6 @@
 import './login.css'
 
-import {useState} from 'react'
+import {useState, useMemo} from 'react'
 import {useNavigate} from 'react-router'
 
 import {useLocation} from 'react-router'
@@ -18,8 +18,8 @@ function authLogic() {
     const location = useLocation()
     const path = location.pathname.slice(1)
 
-    const {setNotesError, setNotesLoading, setNotesMessage, setSavings} = clarifyStore()
-    const {setNotes, setTags, setCategories, setArchive, setTrash} = appStore()
+    const {setNotesError, setNotesLoading, setNotesMessage} = clarifyStore()
+    const {setNotes, setTags, setCategories, setArchive, setTrash, guestMode, setGuestMode} = appStore()
 
     // send data to the server for login or registration
     const submitRequest = async () => {
@@ -92,7 +92,6 @@ function authLogic() {
                     endpoint.setter(
                         keys.includes(endpoint.key) ? resData.data : resData
                     )
-                    setSavings(prev => ({...prev, [endpoint.key]: false}))
                 })
             )
 
@@ -185,6 +184,8 @@ function authLogic() {
             apple: 'register using Apple',
             altdesc: 'already have an account?',
             altact: 'log in',
+            guestdesc: 'wish to continue without an account?',
+            guestact: "let's try"
         },
         login: {
             title: 'welcome back',
@@ -200,6 +201,7 @@ function authLogic() {
     return {
         path,
         text: texts[path],
+        guestMode, setGuestMode,
         online,
 
         // state

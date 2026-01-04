@@ -34,16 +34,12 @@ const useClarifyLogic = (props) => {
         animating, setAnimating,
         // clarify window loading state
         clarifyLoading, setClarifyLoading,
-        // notes saving state
-        setSavings,
-        // saving and deleting errors that occurred when saving data
-        setSavingErrors, removeSavingError,
         // saving a user's action in case it needs to be repeated
         setRetryFunction,
         currentElementId
     } = clarifyStore()
 
-    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing, setTrash, notes} = appStore()
+    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing, setTrash, setArchive} = appStore()
 
     // used to determine the need for a redirect; on the page of a specific note after deleting
     const renavigate = location.pathname == `/notes/note/${props.id}`
@@ -53,11 +49,11 @@ const useClarifyLogic = (props) => {
 
     // converting the address notes/note/${id} to notes — suitable for the server
     const path = (pathSegments[0] == 'notes' && pathSegments[1] == 'note')
-    ? 'notes'
-    : pathSegments[0]
+        ? 'notes'
+        : pathSegments[0]
 
     // small filter that identifies the desired data object from storage according to the selected action and the current page
-    const effectivePath = (path == 'archive' || path == 'trash' || path.startsWith('notes/note')) ? 'notes' : path
+    const effectivePath = (path == 'archived' || path == 'trash' || path.startsWith('notes/note')) ? 'notes' : path
     
     // disappearing clarify window with animation and unmounting
     const closeAnim = () => {
@@ -76,7 +72,7 @@ const useClarifyLogic = (props) => {
 
     // getting information (to fill inputs in the edit action)
     const get = () => {
-        fetch(`http://api.notevault.pro/api/v1/${(path == 'archive' || path == 'trash') ? 'notes' : path}`,
+        fetch(`http://api.notevault.pro/api/v1/${(path == 'archived' || path == 'trash') ? 'notes' : path}`,
             {
                 method: 'GET',
                 headers: {
@@ -96,20 +92,20 @@ const useClarifyLogic = (props) => {
         })
         .then(resData => {
             setClarifyLoading(false)
-            // props.setName(resData.find(item => item.id == props.id)?.name || '')
-            // props.setColor(resData.find(item => item.color == props.color)?.color || '')
+            props.setName(resData.find(item => item.id == props.id)?.name || '')
+            props.setColor(resData.find(item => item.color == props.color)?.color || '')
         })
     }
 
     // to get at the first render
-    useEffect(() => get(), [])
+    useEffect(() => online ? get() : setClarifyLoading(false), [])
 
     // determining which server request must be re-executed to update the list after the user's action
     const refresh = {
         notes: props.getNotes,
         tags: props.getGroups,
         categories: props.getGroups,
-        archive: props.getTrash,
+        archived: props.getTrash,
         trash: props.getTrash,
     }
 
@@ -121,94 +117,74 @@ const useClarifyLogic = (props) => {
         const currentName = retryContext?.name || props.name
         const currentColor = retryContext?.color || props.color
 
-        setSavings(prev => ({...prev, [props.id]: true, [path]: true}))
-
-        try {
-            const payload = ['new', 'edit'].includes(currentAction)
-                ? path == 'categories'
+        const payload = ['new', 'edit'].includes(currentAction)
+            ? currentPath == 'categories'
                 ? {name: currentName, color: currentColor}
                 : {name: currentName}
-                : null
+            : null
 
-            await clarifyApi({
-                entity: currentPath,
-                action: currentAction,
-                id: currentId,
-                token,
-                payload
-            })
+        const setterMap = {
+            categories: setCategories,
+            notes: setNotes,
+            tags: setTags,
+            trash: setTrash,
+            archived: setArchive
+        }
 
-            const setterMap = {
-                categories: setCategories,
-                notes: setNotes,
-                tags: setTags,
-                trash: setTrash,
-                archive: setTrash
-            }
+        const setter = setterMap[currentPath]
 
-            const setter = setterMap[currentPath]
-            
-            if (setter) {
-                setter(prev => prev.filter(item => item.id != currentId))
+        const updateItem = (patch) =>
+            setter(prev =>
+                prev.map(item =>
+                    item.id == currentId ? {...item, ...patch} : item
+            ))
+
+        const isActive = currentAction == 'new' || currentId == currentElementId
+
+        try {
+            await clarifyApi({entity: currentPath, action: currentAction, id: currentId, token, payload})
+
+            if (currentAction == 'edit') {
+                updateItem({
+                    name: currentName,
+                    color: currentColor,
+                    saving: false,
+                    error: false
+                })
+            } else {
+                setter(prev => prev.filter(item => item.id !== currentId))
             }
 
             if (renavigate) navigate('/notes')
-            // if successful, the data saving icon is removed
-            setSavings(prev => ({...prev, [props.id]: false, [path]: false}))
 
-            const activeIdInStore = currentElementId
-
-            if (currentAction == 'new' || currentId == activeIdInStore) {
-                if (!visibility && action !== false) {
-                    closeAnim()
-                }
-            }
-
-            try {
-                setSavings(prev => ({...prev, [currentId]: false}))
-                removeSavingError(currentId, path)
-
-                // if Clarify was mounted only to try to download data from the server again after error, then it is unmounted back
-                const activeIdInStore = currentElementId
-                    if (currentAction == 'new' || currentId == activeIdInStore) {
-                        if (!visibility && action !== false) closeAnim()
-                    }
-
-                if (currentAction == 'delete') {
-                    setTrash(prev =>
-                        prev.map(item =>
-                            item.id == currentId
-                                ? {...item, syncing: false}
-                                : item
-                        )
-                    )
-                }
-            } catch (error) {
-                console.error('', error)
-            }
-
+            if (!visibility && action !== false && isActive) closeAnim()
         } catch (error) {
-            setSavings(prev => ({...prev, [props.id]: false, [path]: false}))
-            setSavingErrors(prev => ({
-                ...prev,
-                [path]: {
-                    ...(prev[path] || {}),
-                    [currentId]: {
-                        action: currentAction,
-                        name: currentName,
-                        color: currentColor,
-                        path: path
-                    }
-                }
-            }))
-            
-            if (path == 'tags') props.getGroups()
-            else if (path == 'categories') props.getGroups()
-            else props.getNotes()
-            
-            if (!visibility && action != false) closeAnim()
+            updateItem({
+                name: currentName,
+                color: currentColor,
+                saving: false,
+                error: true
+            })
+    } finally {
+        updateItem({
+            name: currentName,
+            color: currentColor,
+            saving: false,
+            error: false,
+            syncing: false
+        })
+
+        if (currentPath == 'archived' || currentPath == 'trash') {
+            setNotes(prev => prev.map(item =>
+                item.id == currentId ? {
+                    ...item,
+                    saving: false,
+                    error: false,
+                    syncing: false
+                } : item
+            ))
         }
-    }
+    }}
 
     // saving in the interface, so-called optimistic update
     const offlineChange = (retryContext = null) => {
@@ -235,18 +211,18 @@ const useClarifyLogic = (props) => {
                 const tempId = Date.now()
                 // sync and offline flags for UI, syncAction -- for offline synchronization
                 setter(prev =>
-                prev.map(item =>
-                    item.id == props.id
-                        ? {...item,
-                            name: props.name,
-                            color: props.color,
-                            tempId,
-                            offline: true,
-                            syncing: false,
-                            syncAction: 'edit'
-                        }
-                        : item
-                    )
+                    prev.map(item =>
+                        item.id == props.id
+                            ? {...item,
+                                name: props.name,
+                                color: props.color,
+                                tempId,
+                                offline: true,
+                                syncing: false,
+                                syncAction: 'edit'
+                            }
+                            : item
+                        )
                 )
                 // adding a queue to offline synchronization
                 addOfflineActions({
@@ -264,14 +240,14 @@ const useClarifyLogic = (props) => {
                 closeAnim()
                 return
             }
-            setSavings(prev => ({...prev, [props.id]: true}))
 
             setter(prev =>
                 prev.map(item =>
                     item.id == props.id
                         ? {...item,
                             name: props.name,
-                            color: props.color
+                            color: props.color,
+                            saving: true
                         }
                         : item
                 )
@@ -312,8 +288,6 @@ const useClarifyLogic = (props) => {
                 closeAnim()
                 return
             }
-
-            setSavings(prev => ({...prev, [props.id]: true}))
 
             setter(prev => {
                 const newGroup = [...prev, {
@@ -376,7 +350,6 @@ const useClarifyLogic = (props) => {
                 setNotes(prev => [...prev, restoredItem])
             }
 
-            setSavings(prev => ({...prev, [currentId]: true}))
             change({id: props.id})
             closeAnim()
         } else {
@@ -418,7 +391,6 @@ const useClarifyLogic = (props) => {
             change,
             setVisibility,
             setLoadingError,
-            removeSavingError,
             setClarifyLoading
         },
         pathData: {

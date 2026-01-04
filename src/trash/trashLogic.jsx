@@ -2,9 +2,10 @@ import {useState, useEffect, useRef, useMemo} from 'react'
 import {useLocation} from 'react-router'
 import Cookies from 'js-cookie'
 
-import {clarifyStore, appStore} from '../store'
+import {clarifyStore, appStore, apiStore} from '../store'
 
 function trashLogic() {
+    const online = apiStore(state => state.online)
 
   // used to determine whether the component will perform the login or registration function
     const location = useLocation()
@@ -13,37 +14,40 @@ function trashLogic() {
     [location.pathname])
 
     const {
-            // action being performed and its purpose
-            setAction,
-            // error text returned by the server
-            // <Clarify/> window visibility
-            setVisibility,
-            // animation status (used to block unwanted player actions during an animation that could break the animation)
-            animating,
-            setAnimating,
-            // status and it change of data download from the server in the <Clarify/> window
-            // status of the moment of saving information
-            setErrorAction
-        } = clarifyStore()
+      // action being performed and its purpose
+      setAction,
+      // error text returned by the server
+      // <Clarify/> window visibility
+      setVisibility,
+      // animation status (used to block unwanted player actions during an animation that could break the animation)
+      animating,
+      setAnimating,
+      // status and it change of data download from the server in the <Clarify/> window
+      // status of the moment of saving information
+      setErrorAction
+    } = clarifyStore()
 
-    const {online, archive, setArchive, trash, setTrash} = appStore()
+  const {setArchive, setTrash, setOfflineMode} = appStore()
+
+  const [deletedLoading, setDeletedLoading] = useState(false)
+  const [archivedLoading, setArchivedLoading] = useState(false)
 
   // 
-    const token = [
-        localStorage.getItem('token'),
-        Cookies.get('token')
-    ].find(
-        token => token
-    &&
-        token !== 'null'
-    )
+  const token = [
+      localStorage.getItem('token'),
+      Cookies.get('token')
+  ].find(
+      token => token
+  &&
+      token !== 'null'
+  )
 
-    const trashUrl = useMemo(
-        () => `http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
-    [path])
+  const trashUrl = useMemo(
+      () => `http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
+  [path])
 
   const getTrash = () => {
-    setLoading(true)
+    path == 'trash' ? setDeletedLoading (true) : setArchivedLoading(true)
     fetch(trashUrl, {
         method: 'GET',
         headers: {
@@ -54,17 +58,27 @@ function trashLogic() {
       })
     .then(res => res.json())
     .then(resData => {
-      // original full list
-      // setTrash(resData.data)
-      // successful download status
-      setLoading(false)
+      if (path == 'trash') {
+        setTrash(resData.data)
+        setDeletedLoading (false)
+      } else
+        setArchive(resData.data)
+        setArchivedLoading(false)
     })
   }
 
   // triggers the function execution on the first load
   useEffect(() => {if (online) {getTrash()}}, [])
-  
-  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+      if (online) {
+          setOfflineMode(false)
+      }
+      
+      if (!online) {
+          setOfflineMode(true)
+      }
+  }, [online])
 
   // refs for correctly setting focus on the checkbox imitation
   const gridRef = useRef(null)
@@ -109,7 +123,7 @@ function trashLogic() {
     }, 300)
     }
 
-    return {path, loading, selectedNotes, catsView, listView, elementID, gridRef, listRef, getTrash, setCatsView, selectNote, setElementID, openAnim}
+    return {deletedLoading, archivedLoading, path, selectedNotes, catsView, listView, elementID, gridRef, listRef, getTrash, setCatsView, selectNote, setElementID, openAnim}
 }
 
 export default trashLogic

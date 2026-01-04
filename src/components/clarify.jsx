@@ -43,9 +43,7 @@ import useClarifyLogic from './useClarifyLogic'
                         onChange={() => props.color == value ? props.setColor(null) : props.setColor(value)}
                     />
                 </label>
-            ), 
-            [colors, loadingError, props.color, props.setColor]
-        )
+        ),[colors, loadingError, props.color, props.setColor])
         // 
 
         // change() function from <Clarify/>; call is available if an error occurred while saving, to try again

@@ -410,6 +410,7 @@
 .--animated-error {
     animation: shake-error 300ms;
     border: 0.1vw solid var(--del-btn-hvr);
+    height: max-content;
 }
 
 .--animated-error:focus {

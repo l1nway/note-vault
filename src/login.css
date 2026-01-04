@@ -1,16 +1,28 @@
 .login-loading-error {
-    position: absolute;
+    position: fixed;
     width: 100%;
-    height: 100%;
-    padding: 0;
-    padding-top: 0px;
-    margin: 0 auto;
     display: flex;
-    justify-content: center;
     flex-direction: column;
     align-items: center;
     gap: 2vw;
     cursor: pointer;
+    top: 0;
+    justify-content: center;
+    height: 100%;
+}
+
+.auth-page {
+    display: flex;
+    width: 100%;
+    height: 100%;
+
+    @media (min-width: 1025px) {
+        align-items: center;
+    }
+}
+
+.auth-page > :first-child {
+    width: 100% !important;
 }
 
 .login-main {
@@ -20,11 +32,21 @@
     align-items: center;
     background: black;
     text-align: center;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 3vw;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         background: none;
     }
+
+    @media (max-width: 1400px) {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+.login-header {
+    padding-top: 5%;
 }
 
 .login-wrapper {
@@ -33,7 +55,7 @@
     padding: 2vw;
     width: 50%;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         width: 95%;
         border-radius: 2vw;
         padding: 4vw;
@@ -43,17 +65,12 @@
 
 .login-logo {
     background: linear-gradient(to bottom right, #b2ff59, #8e24aa);
-    width: 4.5vw;
-    height: 4.5vw;
+    width: 20vw;
+    height: 20vw;
     padding: 2vw;
-    border-radius: 2vw;
+    border-radius: 15%;
     background-size: 200% 200%;
     animation: flow 6s ease-in-out infinite alternate;
-
-    @media (max-width: 768px) {
-        width: 30vw;
-        height: 30vw;
-    }
 }
 
 @keyframes flow {
@@ -61,22 +78,39 @@
   100% {background-position: 100% 100%;}
 }
 
+@media (max-width: 1400px) {
+    .login-logo {
+        width: 15vw;
+        height: 15vw;
+    }
+}
+
+@media (max-width: 1024px) {
+    .login-logo {
+        width: 40vw;
+        height: 40vw;
+    }
+}
+
 .login-title {
     margin: 0.5vw 0vw;
-    text-transform: capitalize;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 10vw;
         padding: 2vw;
     }
 
 }
 
+.login-tilte:first-letter {
+    text-transform: capitalize;
+}
+
 .login-desc {
     margin: 0.5vw 0vw;
     color: #99a1af;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 5vw;
         padding: 0vw 0vw 3.5vw;
     }
@@ -94,7 +128,7 @@
     flex-direction: column;
     align-items: flex-start;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         align-items: center;
     }
 }
@@ -106,7 +140,7 @@
     padding: 1vw 0vw;
     margin: 0;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         margin: 1vw 0vw 5vw;
         font-size: 7vw;
     }
@@ -123,7 +157,7 @@
     font-size: 1.5vw;
     padding: 0vw 0.75vw;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         height: 10vw;
         font-size: 7vw;
         border-radius: 3vw;
@@ -144,7 +178,7 @@
     flex-direction: column;
     align-items: flex-start;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         align-items: center;
     }
 }
@@ -156,7 +190,7 @@
     padding: 1vw 0vw;
     margin: 0;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         margin: 4vw 0vw 5vw;
         font-size: 7vw;
         padding: 0vw 2vw;
@@ -174,7 +208,7 @@
     font-size: 1.5vw;
     padding: 0vw 0.75vw;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         height: 10vw;
         font-size: 7vw;
         border-radius: 3vw;
@@ -206,7 +240,7 @@ input:focus {
     justify-content: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .error-message {
         font-size: 5vw;
         height: 10vw;
@@ -223,8 +257,9 @@ button:focus {
     font-size: 1.5vw;
     color: #6e6e79;
     padding: 0.5vw 0vw;
+    text-wrap: nowrap;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 5vw;
     }
 }
@@ -239,8 +274,10 @@ button:focus {
     align-items: center;
     padding-top: 1vw;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         padding: 3vw 0vw 0vw;
+        flex-direction: column;
+        width: 100%;
     }
 }
 
@@ -250,12 +287,17 @@ button:focus {
     gap: 1vw;
     cursor: pointer;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         gap: 2.5vw;
+        justify-content: space-between;
+        display: flex;
+        width: 100%;
+        padding: 0vw 2vw;
     }
 }
 
 .login-forgot {
+    text-wrap: nowrap;
     cursor: pointer;
     font-size: 1.5vw;
     color: #75c301;
@@ -264,8 +306,10 @@ button:focus {
     transition: 300ms border;
     padding: 0.5vw;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 5vw;
+        width: 100%;
+        padding: 2vw;
     }
 }
 
@@ -292,7 +336,7 @@ button:focus {
     align-items: center;
     transition: 300ms border;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         border-radius: 2vw;
         width: 10vw;
         height: 10vw;
@@ -314,7 +358,7 @@ button:focus {
     height: 1vw;
     opacity: var(--opacity);
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         width: 7vw;
         height: 8vw;
     }
@@ -332,10 +376,10 @@ button:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: 300ms border;
+    transition: 300ms border, 300ms background-color, 300ms color;
 
-    @media (max-width: 768px) {
-        margin: 6vw 0vw 0vw;
+    @media (max-width: 1024px) {
+        margin: 0;
         border-radius: 3vw;
         height: 10vw;
         font-size: 5vw;
@@ -347,7 +391,12 @@ button:focus {
 }
 
 .sign-button:disabled {
+    background-color: var(--def-btn-hvr);
     cursor: not-allowed;
+}
+
+.sign-button:disabled:hover {
+    border: 0.25vw solid #1e2939;
 }
 
 .login-alternative {
@@ -357,7 +406,7 @@ button:focus {
     gap: 1vw;
     width: 100%;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 5vw;
         padding: 4vw 0;
     }
@@ -396,7 +445,7 @@ button:focus {
     margin: 1.5vw 0vw 1.5vw 0vw;
     transition: 300ms border;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         height: 10vw;
         font-size: 5vw;
         border-radius: 3vw;
@@ -441,7 +490,7 @@ button:focus {
     margin: 0vw 0vw 1vw 0vw;
     transition: 300ms border;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         height: 10vw;
         font-size: 5vw;
         border-radius: 3vw;
@@ -473,20 +522,22 @@ button:focus {
 
 .create-account {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 1vw;
     font-size: 1.25vw;
     border: 0.1vw solid transparent;
     transition: 300ms border;
     border-radius: 1vw;
-    height: 3vw;
+    min-height: 3vw;
     align-items: center;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         font-size: 5vw;
-        height: 10vw;
+        min-height: 10vw;
         align-items: center;
         border-radius: 3vw;
+        justify-content: space-around;
     }
 }
 
@@ -515,4 +566,9 @@ button:focus {
 
 .create-link:first-letter {
     text-transform: uppercase;
+}
+
+.create-text,
+.create-link {
+    white-space: nowrap;
 }

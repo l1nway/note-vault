@@ -222,14 +222,12 @@
 }
 
 .clarify-name {
-    gap: 1vw;
     display: flex;
     flex-direction: column;
     padding-bottom: 1vw;
 
     @media (max-width: 1024px) {
         font-size: 6vw;
-        gap: 2.5vw;
         padding-bottom: 4vw;
     }
 }
@@ -273,6 +271,13 @@
 .clarify-input:disabled {
     cursor: not-allowed;
     border: 0.1vw solid  var(--del-btn);
+}
+
+.clarify-inputnull {
+    font-size: 1.5vw;
+    display: flex;
+    color: var(--del-btn-hvr);
+    padding: 1vw 0vw 0vw 1vw;
 }
 
 .clarify-color {
@@ -461,7 +466,7 @@
     }
 }
 
-.clarify-action:disabled {
+.clarify-action-disabled {
     cursor: not-allowed;
     background-color: var(--blck-bc-fcs);
 }

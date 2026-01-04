@@ -134,7 +134,17 @@ function NoteEditor() {
             return
         }
         if (online) {
+            const setFlags = (id, data) => {
+                setNotes(notes =>
+                    notes.map(n =>
+                        n.id == id
+                            ? {...n, ...data}
+                            : n
+                    )
+                )
+            }
             try {
+                setFlags(location.state, {...noteData, saving: true})
                 setSaving(true)
                 await editNote(location.state, noteData)
             } catch (error) {
@@ -143,8 +153,10 @@ function NoteEditor() {
                     global: true,
                     globalMessage: error
                 }))
-            }  finally {
+                setFlags(location.state, {...noteData, saving: false, error: true})
+            } finally {
                 setSaving(false)
+                setFlags(location.state, {...noteData, saving: false, error: false})
                 navigate('/notes')
         }
     }}
@@ -260,15 +272,7 @@ function NoteEditor() {
 
     // 
 
-    // 
-    const inputShake = (ref) => {
-        const el = ref?.current
-        if (!el) return
-
-        el.classList.remove('--animated-error')
-        void el.offsetWidth
-        el.classList.add('--animated-error')
-    }
+    //
 
     const setGeneralError = (status) => {
         if (status) {
@@ -468,7 +472,7 @@ function NoteEditor() {
         },
         actions: {
             setErrors,
-            newNote, modifyNote, clearInputs, selectTag, navigate, inputShake, markdownToggle, loadTags, 
+            newNote, modifyNote, clearInputs, selectTag, navigate, markdownToggle, loadTags, 
             setLoading, loadCats, retryLoad, setNote, setVisibility
         },
         refs: {

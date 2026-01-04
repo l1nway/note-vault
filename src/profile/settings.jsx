@@ -33,7 +33,7 @@ function ProfileSettings() {
 
     // subpage visibility states
     const [changingPassword, setChangingPassword] = useState(false)
-    const [connections, setconnections] = useState(false)
+    const [connections, setConnections] = useState(false)
     const [changingLang, setChangingLang] = useState(false)
     const [logout, setLogout] = useState(false)
 
@@ -150,7 +150,7 @@ function ProfileSettings() {
         },{
             title: 'Connected accounts',
             class: 'settings-accounts',
-            action: setconnections,
+            action: setConnections,
             visibility: connections,
             component: <Connections/>
         },{
@@ -187,7 +187,7 @@ function ProfileSettings() {
             class: 'settings-delete',
             action: 'Delete'
         }
-    ], [changingLang, langChanged, renderLangs, setChangingLang, setChangingPassword, setPasswordChanged, setconnections, connections, setLogout, logout, navigate, t])
+    ])
 
     // render account settings buttons
     const renderSettings = useMemo(() => 
@@ -215,8 +215,7 @@ function ProfileSettings() {
                 {element.component}
             </SlideDown>
         </div>
-        ), 
-        [settingsButtons, t]
+        )
     )
 
     // 

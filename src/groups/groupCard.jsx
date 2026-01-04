@@ -12,11 +12,11 @@ import groupsLogic from './groupsLogic'
 
 import {clarifyStore, pendingStore} from '../store'
 
-function GroupCard({element, openAnim, setElementID, setName, setColor}) {
+function GroupCard({element, openAnim, setElementID, setName, setColor, listView}) {
     const {pathname} = useLocation()
     const path = pathname.slice(1)
 
-    const {animating, savings, savingErrors, retryFunction} = clarifyStore()
+    const {animating, retryFunction} = clarifyStore()
     const {undo, pendings} = pendingStore()
     
     const {catsView, setCatsView} = groupsLogic()
@@ -27,6 +27,7 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
     )
 
     const isPending = Boolean(pending)
+
     return (
         <Link
             to='/notes'
@@ -44,20 +45,13 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
                     e.preventDefault()
                     undo(pending.pendingId)
                 }
-                if (savingErrors[path]?.[element.id]) {
-                    e.preventDefault()
-                    setElementID(element.id)
-                    openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                    setName(savingErrors[path]?.[element.id]?.name, element.id)
-                    setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                }
             }}
         >
             {/* input for css only */}
             <input
                 type='checkbox'
                 className='list-view'
-                checked={catsView == 'list'}
+                checked={listView}
                 onChange={() => setCatsView(catsView == 'list' ? 'grid' : 'list')}
             />
             <SlideDown
@@ -73,13 +67,6 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
                             e.preventDefault()
                             if (animating == true) {
                                 return false
-                            }
-                            
-                            if (savingErrors[path]?.[element.id]) {
-                                openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                                setName(savingErrors[path]?.[element.id]?.name, element.id)
-                                setColor(savingErrors[path]?.[element.id]?.color, element.id)
-                                return
                             }
 
                             openAnim('edit', element.id)
@@ -125,13 +112,11 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
                     <div
                         className='group-title'
                     >
-                        {savingErrors[path]?.[element.id]
-                            ? `#${savingErrors[path]?.[element.id]?.name}`
-                            : (path == 'tags' ? `#${element.name}` : element.name)
-                        }
+                        
+                        {path == 'tags' ? `#${element.name}` : element.name}
                     </div>
                     <SlideLeft
-                        visibility={savings[element.id]}
+                        visibility={element.saving}
                     >
                         <FontAwesomeIcon
                             className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
@@ -139,7 +124,7 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
                         />
                     </SlideLeft>
                     <SlideLeft
-                        visibility={savingErrors[path]?.[element.id]}
+                        visibility={element.error}
                     >
                         <FontAwesomeIcon
                             className='loading-error-icon'
@@ -147,9 +132,6 @@ function GroupCard({element, openAnim, setElementID, setName, setColor}) {
                             onClick={(e) => {
                                 e.preventDefault()
                                 setElementID(element.id)
-                                openAnim(savingErrors[path]?.[element.id]?.action, element.id)
-                                setName(savingErrors[path]?.[element.id]?.name, element.id)
-                                setColor(savingErrors[path]?.[element.id]?.color, element.id)
                             }}
                         />
                     </SlideLeft>

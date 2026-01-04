@@ -22,7 +22,7 @@ import {apiStore, appStore, clarifyStore, notesViewStore} from '../store'
 function Notes() {
     // 
     const online = apiStore(state => state.online)
-    const {offlineMode, setOfflineMode} = appStore()
+    const {offlineMode, tags, setTags, notes, categories, setCategories} = appStore()
     
     const location = useLocation()
     const path = location.pathname.slice(1)
@@ -73,7 +73,7 @@ function Notes() {
     }
 
     useEffect(() => {
-        if (token) {
+        if (token && online) {
             getTags()
             getCats()
         }
@@ -95,8 +95,6 @@ function Notes() {
         animating, setAnimating,
         notesLoading, setNotesLoading,
         notesMessage,
-        savings,
-        savingErrors,
         setClarifyLoading,
         retryFunction, setRetryFunction
     } = clarifyStore()
@@ -117,9 +115,6 @@ function Notes() {
     const [search, setSearch] = useState('')
 
     //
-
-    // array with all categories (SERVER)
-    const [categories, setCategories] = useState([])
 
     // selector open status
     const [categoryStatus, setCategoryStatus] = useState(false)
@@ -150,7 +145,6 @@ function Notes() {
                 className='select-option'
                 onClick={() => {
                     setCategoryValue(element)
-                    setNotesLoading(true)
                 }}
                 onKeyDown={(e) => {
                     if (e.key == 'Enter') {
@@ -164,9 +158,6 @@ function Notes() {
         ), 
         [categories, t, setCategoryValue, setNotesLoading, setCategoryStatus]
     )
-
-    // array with all tags (SERVER)
-    const [tags, setTags] = useState([])
 
     // selector open status
     const [tagStatus, setTagStatus] = useState(false)
@@ -196,8 +187,7 @@ function Notes() {
                 tabIndex='0'
                 className='select-option'
                 onClick={() => {
-                    setTagValue(element),
-                    setNotesLoading(true)
+                    setTagValue(element)
                 }}
             >
                 #{t(element.name)}
@@ -368,7 +358,7 @@ function Notes() {
                     </SlideLeft>
                     {/* displayed during saving */}
                     <SlideLeft
-                        visibility={savings[path]}
+                        visibility={notes.some(item => item?.saving == true)}
                     >
                         <FontAwesomeIcon
                             className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
@@ -377,7 +367,7 @@ function Notes() {
                     </SlideLeft>
                     {/* displayed only if the server returned an error */}
                     <SlideLeft
-                        visibility={savingErrors[path] || notesError}
+                        visibility={notesError || notes.some(item => item?.error == true)}
                     >
                         <FontAwesomeIcon
                             className='loading-error-icon'
@@ -387,7 +377,7 @@ function Notes() {
                     </SlideLeft>
                     {/*  */}
                     <SlideLeft
-                        visibility={!savingErrors}
+                        visibility={false}
                     >
                         <span
                             className='notes-error-text'
@@ -481,8 +471,7 @@ function Notes() {
                                 className='cancel-select'
                                 icon={faXmark}
                                 onClick={() => {
-                                    setCategoryValue('All categories'),
-                                    setNotesLoading(true)
+                                    setCategoryValue('All categories')
                                 }}
                             />
                         </SlideLeft>
@@ -535,8 +524,7 @@ function Notes() {
                             icon={faXmark}
                             tabIndex={tagValue != 'All tags' ? '0' : '1'}
                             onClick={() => {
-                                setTagValue('All tags'),
-                                setNotesLoading(true)
+                                setTagValue('All tags')
                             }}
                             style={{
                                 '--opacity': tagValue != 'All tags' ? 1 : 0

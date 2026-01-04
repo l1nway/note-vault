@@ -12,17 +12,32 @@ const clarifyApi = async ({
         delete: 'DELETE',
         archive: 'POST',
         unarchive: 'POST',
+        restore: 'POST',
         force: 'DELETE'
     }
     
     // matching a method to a user action
     const method = methods[action]
 
-    // final URL regarding the user's action and link
+    const normalizedEntity =
+        entity == 'trash' || entity == 'archived'
+            ? 'notes'
+            : entity
+
+    const noteActionEndpoints = {
+        archive: 'archive',
+        unarchive: 'unarchive',
+        restore: 'restore',
+        force: 'force',
+    }
+
     const url =
         action == 'new'
-        ? `http://api.notevault.pro/api/v1/${entity}`
-        : `http://api.notevault.pro/api/v1/${entity}/${id}`
+            ? `http://api.notevault.pro/api/v1/${normalizedEntity}`
+            : normalizedEntity == 'notes' && noteActionEndpoints[action]
+                ? `http://api.notevault.pro/api/v1/notes/${id}/${noteActionEndpoints[action]}`
+                : `http://api.notevault.pro/api/v1/${normalizedEntity}/${id}`
+
 
     const res = await fetch(url, {
         method,

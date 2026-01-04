@@ -8,6 +8,7 @@ import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 
 import {apiStore} from '../store'
+import {shake} from '../components/shake'
 
 function User() {
     const online = apiStore(state => state.online)
@@ -75,7 +76,8 @@ function User() {
                 }, 7000)
         })
         .catch(error => {
-            inputShake()
+            shake(nameRef.current)
+            setNameError(true)
         })
     }
 
@@ -120,16 +122,6 @@ function User() {
     }
 
     const nameRef = useRef(null)
-
-    const inputShake = () => {
-        setNameError(true)
-        const el = nameRef?.current
-        if (!el) return
-
-        el.classList.remove('--animated-error')
-        void el.offsetWidth
-        el.classList.add('--animated-error')
-    }
 
     return (
         <form
@@ -245,8 +237,9 @@ function User() {
                         type='button'
                         className='values-cancel'
                         onClick={() => {
-                            setName(storedValue('name')),
+                            setName(storedValue('name'))
                             setEmail(storedValue('email'))
+                            setNameError(false)
                         }}
                         tabIndex={nameEdited || emailEdited ? 0 : -1}
                     >

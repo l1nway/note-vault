@@ -37,7 +37,10 @@ function NotesList(props) {
         getNotes,
         openAnim,
         queryString,
-        filteredNotes
+        filteredNotes,
+        loadMore,
+        page,
+        lastPage
     } = notesLogic(props)
 
     const handleAction = (type, id) => {
@@ -47,12 +50,15 @@ function NotesList(props) {
 
     // displaying a sorted list
     const renderNotes = useMemo(() => {
-        const source = queryString ? filteredNotes : notes
+        // const source = queryString ? filteredNotes : notes
+        const source = notes
         return source?.map((element, index) => 
             <NoteCard
                 key={element.id}
                 note={element}
                 onAction={handleAction}
+                setCategory={props.setCategory}
+                setTag={props.setTag}
             />
         )
     }, [queryString, filteredNotes, notes, handleAction])
@@ -205,7 +211,16 @@ function NotesList(props) {
                     </ContentLoader>
                 </div>
             </SlideDown>
-            
+            <SlideDown
+                visibility={page < lastPage}
+            >
+                <button
+                    onClick={loadMore}
+                    disabled={notesLoading}
+                >
+                    {notesLoading ? 'Loading...' : 'Load more'}
+                </button>
+            </SlideDown>
         </>
     )
 }

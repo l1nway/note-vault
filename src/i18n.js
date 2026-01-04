@@ -22,7 +22,7 @@ const resources = {
       'category': 'категория',
       'tag': 'тег',
       'tags': 'теги',
-      'archived': 'архивированое',
+      'archive': 'архивированое',
       'trash': 'удалённое',
       'Not authorized': 'Не авторизован',
       'Name unsaved': 'Не сохранено',
@@ -153,7 +153,7 @@ const resources = {
       'category': 'категорія',
       'tag': 'тег',
       'tags': 'теги',
-      'archived': 'архівоване',
+      'archive': 'архівоване',
       'trash': 'видалене',
       'Not authorized': 'Не авторизований',
 
@@ -300,7 +300,7 @@ const resources = {
       'category': 'kategoria',
       'tag': 'tag',
       'tags': 'tagi',
-      'archived': 'zarchiwizowane',
+      'archive': 'zarchiwizowane',
       'trash': 'usunęte',
       'Not authorized': 'Nieautoryzowany',
 

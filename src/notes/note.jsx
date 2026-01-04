@@ -17,12 +17,12 @@ import Share from '../components/share'
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
 
-import {clarifyStore} from '../store'
-import {editorStore} from '../store'
+import {clarifyStore, editorStore, appStore} from '../store'
 
 function Note() {
 
     const location = useLocation()
+    const {online, noteInfo, setNoteInfo} = appStore()
 
     // checks for the presence of a token in cookies and local storage
     const token = [localStorage.getItem('token'), Cookies.get('token')]
@@ -45,13 +45,15 @@ function Note() {
                 }
             })
         .then(res => res.json())
-        .then(resData => {setInfo(resData), setLoading(false)})
+        .then(resData => {
+            setNoteInfo(resData)
+            console.log(resData)
+            setLoading(false)
+        })
     }
 
     // triggers the function execution on the first load
-    useEffect(() => getNote(), [])
-
-    const [info, setInfo] = useState([])
+    useEffect(() => online ? getNote() : setLoading(false), [])
 
     const {action, setAction, setVisibility} = clarifyStore()
 
@@ -132,7 +134,7 @@ function Note() {
     //
 
     const renderTags = useMemo(() => 
-        info.tags?.map((element, index) =>
+        noteInfo.tags?.map((element, index) =>
         <Link
             to='/notes'
             className='note-info-tag'
@@ -145,7 +147,7 @@ function Note() {
             #{t(element.name)}
         </Link>
         ), 
-        [info.tags, t]
+        [noteInfo.tags, t]
     )
 
     return (
@@ -182,7 +184,7 @@ function Note() {
                         <div
                             className='note-info-title'
                         >
-                            {t(info.title)}
+                            {t(noteInfo.title)}
                         </div>
                         <div
                             className='note-info-dates'
@@ -190,7 +192,7 @@ function Note() {
                             <div
                                 className='note-info-created'
                             >
-                                {t('Created')}: {new Date(info.created_at).toLocaleDateString(i18n.language, {
+                                {t('Created')}: {new Date(noteInfo.created_at).toLocaleDateString(i18n.language, {
                                     month: 'short', day: 'numeric', year: 'numeric'})}
                             </div>
                             <div
@@ -199,14 +201,14 @@ function Note() {
                             <div
                                 className='note-info-updated'
                             >
-                                {t('Updated')}: {new Date(info.updated_at).toLocaleDateString(i18n.language, {
+                                {t('Updated')}: {new Date(noteInfo.updated_at).toLocaleDateString(i18n.language, {
                                     month: 'short', day: 'numeric', year: 'numeric'})}
                             </div>
                         </div>
                         <div
                             className='note-info-groups'
                         >
-                            {info.category !== null ?
+                            {noteInfo.category !== null ?
                                 <div
                                     className='note-info-categories'
                                 >
@@ -215,13 +217,13 @@ function Note() {
                                         className='note-info-category'
                                         state={{
                                             sort: 'category',
-                                            value: info.category?.name
+                                            value: noteInfo.category?.name
                                         }}
                                     >
                                         <div
                                             className='info-category-circle'
                                         />
-                                        {t(info.category?.name)}
+                                        {t(noteInfo.category?.name)}
                                     </Link>
                                 </div>
                             : null}
@@ -231,15 +233,15 @@ function Note() {
                                 {renderTags}
                             </div>
                         </div>
-                        {info.is_markdown ? 
+                        {noteInfo.is_markdown ? 
                             <MDEditor.Markdown
-                                source={info.content}
+                                source={noteInfo.content}
                             />
                         : 
                             <div
                                 className='note-info-content'
                             >
-                                {info.content}
+                                {noteInfo.content}
                             </div>
                         }
                         

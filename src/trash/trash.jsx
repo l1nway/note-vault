@@ -1,13 +1,13 @@
 import './trash.css'
 
-import {useMemo} from 'react'
+import {useMemo, useState} from 'react'
 import {OverlayScrollbarsComponent} from 'overlayscrollbars-react'
 import 'overlayscrollbars/overlayscrollbars.css'
 import ContentLoader from 'react-content-loader'
 import {useTranslation} from 'react-i18next'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faTrashCan, faTriangleExclamation, faFloppyDisk, faList as faListSolid, faTableCells as faTableCellsSolid} from '@fortawesome/free-solid-svg-icons'
+import {faPlane, faUserSlash, faSpinner, faTrashCan, faTriangleExclamation, faFloppyDisk, faList as faListSolid, faTableCells as faTableCellsSolid} from '@fortawesome/free-solid-svg-icons'
 
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
@@ -15,15 +15,14 @@ import SlideLeft from '../components/slideLeft'
 import trashLogic from './trashLogic'
 import NoteCard from '../components/noteCard'
 
-import {notesViewStore, clarifyStore, appStore} from '../store'
+import {notesViewStore, clarifyStore, appStore, apiStore} from '../store'
 
 function Trash() {
-  
   const {t} = useTranslation()
 
-  const {path, loading, selectedNotes, elementID, gridRef, listRef, getTrash, setElementID, openAnim} = trashLogic()
+  const {deletedLoading, archivedLoading, path, selectedNotes, elementID, gridRef, listRef, getTrash, setElementID, openAnim} = trashLogic()
 
-  const {archive, setArchive, trash, setTrash} = appStore()
+  const {archive, setArchive, trash, setTrash, offlineMode, guestMode} = appStore()
   
   // global state that stores the display view of notes
   const {notesView, setNotesView} = notesViewStore()
@@ -35,10 +34,7 @@ function Trash() {
         // action being performed and its purpose
         action, setAction,
         // <Clarify/> window visibility
-        setVisibility,
-        // status of the moment of saving information
-        saving, savingError,
-        errorAction
+        setVisibility
     } = clarifyStore()
 
   const handleAction = (type, id) => {
@@ -46,15 +42,20 @@ function Trash() {
       openAnim(type)
   }
 
-  const renderTrash = useMemo(() => 
-    trash?.map((element, index) =>
-        <NoteCard
-            key={element.id}
-            note={element}
-            onAction={handleAction}
-        />
-    ), 
-    [trash, handleAction]
+  const data = path == 'trash' ? trash : archive
+
+  const renderTrash = useMemo(
+    () => {
+      return Array.isArray(data)
+        ? data.map((element) => (
+            <NoteCard
+              key={element.id}
+              note={element}
+              onAction={handleAction}
+            />
+          ))
+        : null
+    }, [path, trash, archive, handleAction]
   )
 
   return (
@@ -72,22 +73,49 @@ function Trash() {
           >
             {t(path)}
           </h1>
-                    
+          {/* displayed during loading */}
           <SlideLeft
-              visibility={saving && (errorAction == 'force' || errorAction == 'delete' || errorAction == 'restore' || errorAction == 'archive' || errorAction == 'unarchive')}
+              visibility={path == 'trash' ? deletedLoading : archivedLoading}
           >
               <FontAwesomeIcon
-                  className={`loading-save-icon ${errorAction == 'delete' ? '--trash' : null}`}
-                  icon={errorAction == 'delete' ? faTrashCan : faFloppyDisk}
+                  className='clarify-loading-icon'
+                  icon={faSpinner}
               />
           </SlideLeft>
+          {/* displayed during saving */}
           <SlideLeft
-              visibility={savingError && (errorAction == 'force' || errorAction == 'delete' || errorAction == 'restore' || errorAction == 'archive' || errorAction == 'unarchive')}
+              visibility={data.some(item => item?.saving == true)}
+          >
+            <FontAwesomeIcon
+                className='loading-save-icon'
+                icon={faFloppyDisk}
+            />
+          </SlideLeft>
+          {/* displayed only if the server returned an error */}
+          <SlideLeft
+              visibility={data.some(item => item?.error == true)}
           >
               <FontAwesomeIcon
                   className='loading-error-icon'
                   icon={faTriangleExclamation}
-                  onClick={() => setAction('delete')}
+              />
+          </SlideLeft>
+          {/* displayed only if offline mode is enabled */}
+          <SlideLeft
+              visibility={offlineMode}
+          >
+              <FontAwesomeIcon
+                  className='newnote-offline-icon'
+                  icon={faPlane}
+              />
+          </SlideLeft>
+          {/* displayed only if the user is not authorized */}
+          <SlideLeft
+              visibility={guestMode}
+          >
+              <FontAwesomeIcon
+                  className='unauthorized-user-icon'
+                  icon={faUserSlash}
               />
           </SlideLeft>
 
@@ -161,7 +189,7 @@ function Trash() {
           </div>
       </SlideDown>
         <SlideDown
-            visibility={loading}
+            visibility={path == 'trash' ? deletedLoading : archivedLoading}
         >
             <div
                 className='groups-list'
@@ -192,7 +220,7 @@ function Trash() {
             </div>
         </SlideDown>
       <SlideDown
-        visibility={!loading}
+        visibility={path == 'trash' ? !deletedLoading : !archivedLoading}
       >
         <OverlayScrollbarsComponent
           className='profile-scroll'
@@ -216,6 +244,7 @@ function Trash() {
           id={elementID}
           getTrash={getTrash}
           setTrash={setTrash}
+          setArchive={setArchive}
           elementsIDs={selectedNotes}
         /> : null}
     </div>
