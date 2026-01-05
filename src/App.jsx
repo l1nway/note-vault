@@ -1,6 +1,6 @@
 import './App.css'
 
-import {useState, createRef, useRef} from 'react'
+import {useState, createRef, useRef, useEffect} from 'react'
 import {Routes, Route, useLocation} from 'react-router'
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
 import Cookies from 'js-cookie'
@@ -13,7 +13,8 @@ import useOfflineSync from './components/useOfflineSync'
 
 function App() {
 
-  const {offlineActions} = appStore()
+  const {online} = apiStore()
+  const {offlineActions, setOfflineMode} = appStore()
   const {pendings} = pendingStore()
 
   const token = [
@@ -24,11 +25,15 @@ function App() {
       &&
           token !== 'null'
   )
-
   useOfflineSync(token)
 
-  // window.addEventListener('online', () => apiStore.getState().setOnline(true))
-  // window.addEventListener('offline', () => apiStore.getState().setOnline(false))
+  useEffect(() => {
+    if (online) {
+      setOfflineMode(false)
+    }
+    if (!online) {
+      Cookies.get('offline') == 'true' && setOfflineMode(true)
+    }}, [online])
 
   // тестирую возможность менять расположение бара
   const [topBar, setTopBar] = useState(true)

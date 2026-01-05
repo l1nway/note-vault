@@ -64,7 +64,6 @@ function User() {
             })
         .then(res => res.json())
         .then(resData => {
-            console.log(resData, 'change name')
                 remember
                 ?   localStorage.setItem('name', resData.name)
                 :   Cookies.set('name', resData.name, {expires: 1})

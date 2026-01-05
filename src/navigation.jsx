@@ -241,7 +241,6 @@ function Navigation() {
                     {amount[index] > 0 && (
                         <div
                             className='nav-amount'
-                            onClick={() => console.log(amount)}
                         >
                             {amount[index]}
                         </div>

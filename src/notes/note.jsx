@@ -47,7 +47,6 @@ function Note() {
         .then(res => res.json())
         .then(resData => {
             setNoteInfo(resData)
-            console.log(resData)
             setLoading(false)
         })
     }

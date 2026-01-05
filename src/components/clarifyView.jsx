@@ -15,7 +15,7 @@ import {shake, clearShake} from '../components/shake'
 const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const online = apiStore(state => state.online)
-    const {offlineMode} = appStore()
+    const {offlineMode, setArchive, setTrash, notes} = appStore()
 
     const {state, actions, pathData} = logic
     const {action, clarifyLoading, loadingError} = state
@@ -266,6 +266,22 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                                 onTimeout: () => offlineChange(context), 
                                 onCommit: () => change(context) 
                             })
+                            if (path == 'notes') {
+                                const setter = action == 'archive' ? setArchive : setTrash
+
+                                setter(prevNotes => {
+                                    const note = notes.find(n => n.id == props.id)
+                                    if (!note) return prevNotes
+                                    
+                                    return [{
+                                        ...note,
+                                        tempId: note.tempId ?? note.id,
+                                        offline: !online,
+                                        syncing: online,
+                                        syncAction: action
+                                    }, ...prevNotes]
+                                })
+                            }
 
                             closeAnim()
                         }

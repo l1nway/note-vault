@@ -10,6 +10,9 @@ const useOfflineSync = () => {
 
     const syncInProgress = useRef(false)
 
+    const tempCategoryIds = useRef(new Map())
+    const tempTagIds = useRef(new Map())
+
     const pendings = pendingStore(state => state.pendings)
     const commit = pendingStore(state => state.commit)
 
@@ -33,6 +36,23 @@ const useOfflineSync = () => {
             }
         }
 
+        const resolveRelationIds = (payload) => {
+            const resolved = JSON.parse(JSON.stringify(payload))
+
+            if (resolved.category_id) {
+                const realId = tempCategoryIds.current.get(resolved.category_id)
+                    if (realId) {
+                        resolved.category_id = realId
+                    }
+            }
+
+            if (Array.isArray(resolved.tag_ids)) {
+                resolved.tag_ids = resolved.tag_ids.map(tagId => tempTagIds.current.get(tagId) || tagId)
+            }
+
+            return resolved
+        }
+
         const sync = async () => {
             if (!offlineActions.length) return    
             if (isSyncing) return
@@ -41,7 +61,17 @@ const useOfflineSync = () => {
             syncInProgress.current = true
             setIsSyncing(true)
             
-            const actionsQueue = [...offlineActions]
+            const actionsQueue = JSON.parse(JSON.stringify(offlineActions))
+
+            const priority = {
+                categories: 1,
+                tags: 1,
+                notes: 2
+            }
+
+            actionsQueue.sort((a, b) =>
+                (priority[a.entity] ?? 99) - (priority[b.entity] ?? 99)
+            )
 
             const entities = {
                 notes: {
@@ -101,16 +131,29 @@ const useOfflineSync = () => {
                     entities[entity].set(prev => prev.map(n => n.tempId == tempId ? {...n, syncing: true} : n))
 
                     try {
-                        const res = await entities[entity].create(noteData)
+                        const resolvedPayload =
+                            entity == 'notes'
+                                ? resolveRelationIds(noteData)
+                                : noteData
+                        const res = await entities[entity].create(resolvedPayload, tempId)
                         
-                        const serverId = res?.id
+                        const serverId = res?.id ?? res?.data?.id
+                        if (!serverId) throw new Error('No server id returned')
+
+                        if (entity == 'categories') {
+                            tempCategoryIds.current.set(tempId, serverId)
+                        }
+
+                        if (entity == 'tags') {
+                            tempTagIds.current.set(tempId, serverId)
+                        }
 
                         actionsQueue.forEach(a => {
-                            if (a.type == 'edit' && a.payload.id == tempId)
+                            if (a.payload?.id == tempId || a.payload?.tempId == tempId) {
                                 a.payload.id = serverId
+                                a.payload.tempId = null
+                            }
                         })
-
-                        updateOfflineActionId(tempId, serverId)
 
                         entities[entity].set(prev => prev.map(n => 
                             n.tempId == tempId
@@ -141,7 +184,12 @@ const useOfflineSync = () => {
                     entities[entity].set(prev => prev.map(n => n.id == id ? {...n, syncing: true} : n))
 
                     try {
-                        const res = await entities[entity].edit(id, noteData)
+                        const resolvedPayload =
+                            entity == 'notes'
+                                ? resolveRelationIds(noteData)
+                                : noteData
+
+                        const res = await entities[entity].edit(id, resolvedPayload)
 
                         entities[entity].set(prev => prev.map(n =>
                             n.id == id 
@@ -230,6 +278,7 @@ const useOfflineSync = () => {
                 syncInProgress.current = false
                 setIsSyncing(false)
         }
+
         processPendings()
         sync()
     },  [online, offlineActions.length, pendings.length])

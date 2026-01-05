@@ -72,6 +72,10 @@ const useClarifyLogic = (props) => {
 
     // getting information (to fill inputs in the edit action)
     const get = () => {
+        if (action == 'new') {
+            setClarifyLoading(false)
+            return
+        }
         fetch(`http://api.notevault.pro/api/v1/${(path == 'archived' || path == 'trash') ? 'notes' : path}`,
             {
                 method: 'GET',
@@ -92,8 +96,10 @@ const useClarifyLogic = (props) => {
         })
         .then(resData => {
             setClarifyLoading(false)
-            props.setName(resData.find(item => item.id == props.id)?.name || '')
-            props.setColor(resData.find(item => item.color == props.color)?.color || '')
+            if (action == 'edit') {
+                props.setName(resData.find(item => item.id == props.id)?.name || '')
+                props.setColor(resData.find(item => item.color == props.color)?.color || '')
+            }
         })
     }
 
@@ -140,7 +146,7 @@ const useClarifyLogic = (props) => {
             ))
 
         const isActive = currentAction == 'new' || currentId == currentElementId
-
+        let requestError = false
         try {
             await clarifyApi({entity: currentPath, action: currentAction, id: currentId, token, payload})
 
@@ -159,6 +165,7 @@ const useClarifyLogic = (props) => {
 
             if (!visibility && action !== false && isActive) closeAnim()
         } catch (error) {
+            requestError = true
             updateItem({
                 name: currentName,
                 color: currentColor,
@@ -170,9 +177,12 @@ const useClarifyLogic = (props) => {
             name: currentName,
             color: currentColor,
             saving: false,
-            error: false,
+            error: requestError,
             syncing: false
         })
+
+        props.setName('')
+        props.setColor('')
 
         if (currentPath == 'archived' || currentPath == 'trash') {
             setNotes(prev => prev.map(item =>
@@ -200,7 +210,7 @@ const useClarifyLogic = (props) => {
             notes: setNotes,
             tags: setTags,
             trash: setTrash,
-            archive: setTrash
+            archive: setArchive
         }
 
         // matching by path
@@ -258,20 +268,19 @@ const useClarifyLogic = (props) => {
             if (!online || offlineMode) {
                 const tempId = Date.now()
                 // sync and offline flags for UI, syncAction -- for offline synchronization
-                setter(prev => {
-                    const newGroup = [...prev, {
-                        name: props.name,
-                        color: props.color,
-                        notes_count: 0,
-                        id: tempId,
-                        tempId,
-                        offline: true,
-                        syncing: false,
-                        syncAction: 'create',
-                        created_at: new Date().toISOString()
-                    }]
-                    return newGroup.sort((a, b) => a.name.localeCompare(b.name))
-                })
+                setter(prev => ([{
+                    name: props.name,
+                    color: props.color,
+                    notes_count: 0,
+                    id: tempId,
+                    tempId,
+                    offline: true,
+                    syncing: false,
+                    syncAction: 'create',
+                    created_at: new Date().toISOString()
+                },
+                    ...prev
+                ]))
                 // adding a queue to offline synchronization
                 addOfflineActions({
                     type: 'create',
@@ -289,21 +298,21 @@ const useClarifyLogic = (props) => {
                 return
             }
 
-            setter(prev => {
-                const newGroup = [...prev, {
+            setter(prev => ([{
                     name: props.name,
                     color: props.color,
                     notes_count: 0
-                }]
-                return newGroup.sort((a, b) => a.name.localeCompare(b.name))
-            })
+                },
+                    ...prev
+                ]))
             change({id: props.id, action, name: props.name, color: props.color, path})
             closeAnim()
         } else if (action == 'unarchive' || action == 'restore') {
             if (!online || offlineMode) {
                 let restoredItem = null
 
-                setTrash(prev => {
+                const setter = action == 'restore' ? setTrash : setArchive
+                setter(prev => {
                     const updated = prev.filter(item => {
                         if (item.id == props.id) {
                             restoredItem = {
@@ -320,7 +329,7 @@ const useClarifyLogic = (props) => {
                     })
 
                     if (restoredItem) {
-                        setNotes(prev => [...prev, restoredItem])
+                        setNotes(prev => [restoredItem, ...prev])
                     }
 
                     addOfflineActions({
@@ -335,19 +344,20 @@ const useClarifyLogic = (props) => {
         }
             let restoredItem = null
 
-            setTrash(prev => {
-                const updated = prev.filter(item => {
-                    if (item.id === props.id) {
-                        restoredItem = {...item, syncing: true}
-                        return false
-                    }
-                    return true
-                })
+            const setter = action == 'restore' ? setTrash : setArchive
+                setter(prev => {
+                    const updated = prev.filter(item => {
+                        if (item.id == props.id) {
+                            restoredItem = {...item, syncing: true}
+                            return false
+                        }
+                        return true
+                    })
                 return updated
             })
 
             if (restoredItem) {
-                setNotes(prev => [...prev, restoredItem])
+                setNotes(prev => [restoredItem, ...prev])
             }
 
             change({id: props.id})

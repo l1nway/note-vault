@@ -163,7 +163,6 @@ const Editor = forwardRef((props, ref) => {
         .then(resData => {
             setRotate(0)
             setZoom(1)
-            console.log(resData.avatar_url, 'server answer')
             setFile(resData.avatar_url)
             localStorage.setItem('avatar', resData.avatar_url)
             Cookies.set('avatar', resData.avatar_url)

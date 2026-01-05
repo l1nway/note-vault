@@ -258,24 +258,28 @@
     @media (max-width: 2000px) {
         .group-element {
             min-width: 24%;
+            max-width: 24%;
         }
     }
 
     @media (max-width: 1600px) {
         .group-element {
             min-width: 32%;
+            max-width: 32%;
         }
     }
 
     @media (max-width: 1280px) {
         .group-element {
             min-width: 49%;
+            max-width: 49%;
         }
     }
 
     @media (max-width: 1024px) {
         .group-element {
             min-width: 47.75%;
+            max-width: 47.75%;
             padding: 2vw;
         }
     }
@@ -439,6 +443,7 @@
 .group-title {
     font-size: 2vw;
     transition: font-size 300ms;
+    text-wrap: nowrap;
 
     @media (max-width: 1024px) {
         font-size: 5vw;

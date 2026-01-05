@@ -31,7 +31,6 @@ function groupsLogic() {
         action, setAction,
         setVisibility,
         animating, setAnimating,
-        loadingError, loadingErrorMessage,
         setLoadingError,
         setLoadingErrorMessage,
         setClarifyLoading,
@@ -62,22 +61,19 @@ function groupsLogic() {
     }}
 
     useEffect(() => {
+        if (Cookies.get('offline') != 'true' && !online) {
+            setLoadingError(true)
+            setLoadingErrorMessage('No internet connection')
+            setLoading(false)
+        }
+    }, [online])
+
+    useEffect(() => {
         if (online) {
             setOfflineMode(false)
             // token && getNotes()
             !token && setLoading(false)
             setLoading(false)
-        }
-        
-        if (!online && !offlineMode) {
-            console.log('нет инета и оффлайн режима')
-            if (Cookies.get('offline') != 'true') {
-                setLoadingError(true)
-                setLoadingErrorMessage('No internet connection')
-                setLoading(false)
-                return
-            }
-            setOfflineMode(true)
         }
 
         if (offlineMode) {

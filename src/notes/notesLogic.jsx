@@ -9,7 +9,7 @@ import {apiStore, appStore, clarifyStore} from '../store'
 function notesLogic(props) {
 
     const {online} = apiStore()
-    const {offlineMode, setOfflineMode, notes, setNotes} = appStore()
+    const {setNotes} = appStore()
     
     const [filteredNotes, setFilteredNotes] = useState()
 
@@ -63,7 +63,7 @@ function notesLogic(props) {
     // gets a list of notes from the server
     const getNotes = async () => {
         try {
-            setNotesLoading(true)
+            page == 1 && setNotesLoading(true)
             setNotesError(false)
 
         const res = await fetch(
@@ -80,7 +80,6 @@ function notesLogic(props) {
         
         const resData = await res.json()
         page == 1 ? setNotes(resData.data) : setNotes(prev => [...prev, ...resData.data])
-        console.log(resData.data)
 
         setLastPage(resData.last_page)
     } catch (error) {
@@ -101,15 +100,10 @@ function notesLogic(props) {
     }, [queryString, online, token])
 
     useEffect(() => {
-        if (online) {
-            setOfflineMode(false)
-        } else if (!offlineMode) {
-            if (Cookies.get('offline') != 'true') {
-                setNotesError(true)
-                setNotesMessage('No internet connection')
-            } else {
-                setOfflineMode(true)
-            }
+        if (Cookies.get('offline') != 'true' && !online) {
+            setNotesError(true)
+            setNotesMessage('No internet connection')
+            setNotesLoading(false)
         }
     }, [online])
 

@@ -193,7 +193,7 @@ export const pendingStore = create((set, get) => ({
     if (!item || item.status == 'processing') return
 
     set(state => ({
-      pendings: state.pendings.map(p => p.pendingId === pendingId ? {...p, status: 'processing'} : p)
+      pendings: state.pendings.map(p => p.pendingId == pendingId ? {...p, status: 'processing'} : p)
     }))
 
     try {
@@ -212,6 +212,14 @@ export const pendingStore = create((set, get) => ({
     if (!item) return
 
     clearTimeout(item.timeoutId)
+
+    const {action, path, id} = item
+    if ((action == 'archive' || action == 'delete' || action == 'force') && path == 'notes') {
+        const {setArchive, setTrash} = appStore.getState()
+        const setter = action == 'archive' ? setArchive : setTrash
+        setter(prev => prev.filter(note => note.id !== id && note.tempId !== id))
+    }
+
     get().remove(pendingId)
   },
 

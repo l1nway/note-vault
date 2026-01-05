@@ -58,12 +58,12 @@ function trashLogic() {
       })
     .then(res => res.json())
     .then(resData => {
-      if (path == 'trash') {
-        setTrash(resData.data)
-        setDeletedLoading (false)
-      } else
-        setArchive(resData.data)
-        setArchivedLoading(false)
+      // if (path == 'trash') {
+      //   setTrash(resData.data)
+      //   setDeletedLoading (false)
+      // } else
+      //   setArchive(resData.data)
+      //   setArchivedLoading(false)
     })
   }
 
@@ -71,13 +71,12 @@ function trashLogic() {
   useEffect(() => {if (online) {getTrash()}}, [])
 
   useEffect(() => {
-      if (online) {
-          setOfflineMode(false)
-      }
-      
-      if (!online) {
-          setOfflineMode(true)
-      }
+    if (Cookies.get('offline') != 'true' && !online) {
+      alert('нет инета и оффлайн режима')
+      path == 'trash' ? setDeletedLoading (false) : setArchivedLoading(false)
+    } else {
+      path == 'trash' ? setDeletedLoading (false) : setArchivedLoading(false)
+    }
   }, [online])
 
   // refs for correctly setting focus on the checkbox imitation

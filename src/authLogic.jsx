@@ -87,7 +87,7 @@ function authLogic() {
                     return res.json()
                 })
                 .then(resData => {
-                    const keys = ['notes', 'notes?archive=true', 'notes?deleted=true']
+                    const keys = ['notes', 'notes?archived=true', 'notes?deleted=true']
 
                     endpoint.setter(
                         keys.includes(endpoint.key) ? resData.data : resData

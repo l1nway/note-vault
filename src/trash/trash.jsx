@@ -41,7 +41,7 @@ function Trash() {
       setElementID(id)
       openAnim(type)
   }
-
+  
   const data = path == 'trash' ? trash : archive
 
   const renderTrash = useMemo(
@@ -84,7 +84,7 @@ function Trash() {
           </SlideLeft>
           {/* displayed during saving */}
           <SlideLeft
-              visibility={data.some(item => item?.saving == true)}
+              visibility={data?.some(item => item?.saving == true)}
           >
             <FontAwesomeIcon
                 className='loading-save-icon'
@@ -93,7 +93,7 @@ function Trash() {
           </SlideLeft>
           {/* displayed only if the server returned an error */}
           <SlideLeft
-              visibility={data.some(item => item?.error == true)}
+              visibility={data?.some(item => item?.error == true)}
           >
               <FontAwesomeIcon
                   className='loading-error-icon'
