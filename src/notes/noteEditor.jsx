@@ -112,19 +112,28 @@ function NoteEditor() {
     const modifyNote = async () => {
         if (offlineMode || !online) {
             const tempId = Date.now()
-            setNotes(notes =>
-                notes.map(n =>
-                    (n.id == location.state || (n.tempId && n.tempId == location.state))
-                    ? {
-                        ...n,
-                        ...noteData,
-                        tempId,
-                        offline: true,
-                        syncing: false,
-                        syncAction: 'edit'
-                    }
-                    : n
-            ))
+            setNotes(notes => {
+                const index = notes.findIndex(n => 
+                    n.id == location.state || (n.tempId && n.tempId == location.state)
+                )
+
+                if (index == -1) return notes
+
+                const updatedNote = {
+                    ...notes[index],
+                    ...noteData,
+                    tempId,
+                    offline: true,
+                    syncing: false,
+                    syncAction: 'edit'
+                }
+
+                return [
+                    updatedNote,
+                    ...notes.slice(0, index),
+                    ...notes.slice(index + 1)
+                ]
+            })
             addOfflineActions({
                 type: 'edit',
                 entity: 'notes',
@@ -461,7 +470,7 @@ function NoteEditor() {
         content: note.content,
         is_markdown: note.markdown,
         category_id: note.category.id,
-        category: note.category,
+        category: note.category.name == 'Category not selected' ? null : note.category,
         tag_ids: note?.selectedTags?.map(t => t.id)
     }), [note.name, note.content, note.markdown, note.category, note.selectedTags])
 

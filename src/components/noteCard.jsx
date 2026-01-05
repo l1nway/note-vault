@@ -87,7 +87,7 @@ function noteCard({note, onAction, setCategory, setTag}) {
             onClick={(e) => {
                 if (isPending || path != 'notes') {
                     e.preventDefault()
-                    undo(pending.pendingId)
+                    undo(pending?.pendingId)
                     return
                 } else {
                     setNoteInfo(notes.find(n => n.id == note.id))

@@ -9,7 +9,7 @@ import {apiStore, appStore, clarifyStore} from '../store'
 function notesLogic(props) {
 
     const {online} = apiStore()
-    const {setNotes} = appStore()
+    const {notes, setNotes} = appStore()
     
     const [filteredNotes, setFilteredNotes] = useState()
 
@@ -63,7 +63,7 @@ function notesLogic(props) {
     // gets a list of notes from the server
     const getNotes = async () => {
         try {
-            page == 1 && setNotesLoading(true)
+            notes.length == 0 && setNotesLoading(true)
             setNotesError(false)
 
         const res = await fetch(

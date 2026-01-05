@@ -123,7 +123,7 @@ export const clarifyStore = create((set) => ({
   animating: false,
 
   // notes
-  notesLoading: true,
+  notesLoading: false,
   setNotesLoading: (clarify) => set({notesLoading: clarify}),
 
   notesError: false,
