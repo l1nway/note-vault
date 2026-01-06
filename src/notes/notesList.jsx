@@ -1,5 +1,6 @@
 import './notesList.css'
 import Cookies from 'js-cookie'
+import {motion, AnimatePresence} from 'framer-motion'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {useState, useMemo} from 'react'
@@ -40,7 +41,8 @@ function NotesList(props) {
         filteredNotes,
         loadMore,
         page,
-        lastPage
+        lastPage,
+        loadMoreText
     } = notesLogic(props)
 
     const handleAction = (type, id) => {
@@ -52,14 +54,19 @@ function NotesList(props) {
     const renderNotes = useMemo(() => {
         // const source = queryString ? filteredNotes : notes
         const source = notes
-        return source?.map((element, index) => 
-            <NoteCard
+        return source?.map((element, index) =>
+            <motion.div
                 key={element.id}
-                note={element}
-                onAction={handleAction}
-                setCategory={props.setCategory}
-                setTag={props.setTag}
-            />
+                className='note-animated-element'
+                layout
+            >
+                <NoteCard
+                    note={element}
+                    onAction={handleAction}
+                    setCategory={props.setCategory}
+                    setTag={props.setTag}
+                />
+            </motion.div>
         )
     }, [queryString, filteredNotes, notes, handleAction])
 
@@ -161,12 +168,32 @@ function NotesList(props) {
             <SlideDown
                 visibility={!notesLoading}
             >
-                <div
-                    className='notes-list'
-                >
-                    
-                    {renderNotes}
-                </div>
+                <motion.div layout className='notes-list'>
+                    <AnimatePresence>
+                        {renderNotes}
+                    </AnimatePresence>
+                    <SlideDown
+                        visibility={page < lastPage}
+                    >
+                        <div
+                            onClick={loadMore}
+                            className='load-more-button'
+                        >
+                            <span
+                                key={loadMoreText}
+                                className='load-more-text'
+                            >
+                                {t(loadMoreText)}
+                            </span>
+                            <span
+                                className='load-more-dots'
+                                style={{opacity: loadMoreText == 'Load more' ? 0 : 1}}
+                            >
+                                <i></i><i></i><i></i>
+                            </span>
+                        </div>
+                    </SlideDown>
+                </motion.div>
             </SlideDown>
             {action ?
                 <Clarify
@@ -210,16 +237,6 @@ function NotesList(props) {
                         <rect x='225' y='71' rx='3' ry='3' width='40' height='18'/>
                     </ContentLoader>
                 </div>
-            </SlideDown>
-            <SlideDown
-                visibility={page < lastPage}
-            >
-                <button
-                    onClick={loadMore}
-                    disabled={notesLoading}
-                >
-                    {notesLoading ? 'Loading...' : 'Load more'}
-                </button>
             </SlideDown>
         </>
     )

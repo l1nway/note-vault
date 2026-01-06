@@ -92,6 +92,7 @@ function authLogic() {
                     endpoint.setter(
                         keys.includes(endpoint.key) ? resData.data : resData
                     )
+                    console.log(keys.includes(endpoint.key) ? resData.data : resData)
                 })
             )
 

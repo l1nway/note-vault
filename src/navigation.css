@@ -495,6 +495,7 @@ a {
     display: flex;
     width: 100%;
     padding: 15px 2vw 0vw 2vw;
+    overflow: hidden;
 
     @media (max-width: 1024px) {
         padding: 0vw 2vw 2vw 2vw;

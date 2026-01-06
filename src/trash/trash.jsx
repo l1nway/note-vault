@@ -1,8 +1,6 @@
 import './trash.css'
 
 import {useMemo, useState} from 'react'
-import {OverlayScrollbarsComponent} from 'overlayscrollbars-react'
-import 'overlayscrollbars/overlayscrollbars.css'
 import ContentLoader from 'react-content-loader'
 import {useTranslation} from 'react-i18next'
 
@@ -222,22 +220,11 @@ function Trash() {
       <SlideDown
         visibility={path == 'trash' ? !deletedLoading : !archivedLoading}
       >
-        <OverlayScrollbarsComponent
-          className='profile-scroll'
-          options={{
-              scrollbars: {
-                  autoHide: 'never',
-                  autoHideDelay: 0,
-                  theme: 'os-theme-dark'
-              }
-          }}
-        >
           <div
             className='trash-list'
           >
             {renderTrash}
           </div>
-        </OverlayScrollbarsComponent>
       </SlideDown>
       {action ?
         <Clarify

@@ -31,6 +31,7 @@ input[type=checkbox] {
     flex-direction: column;
     width: 100%;
     overflow: hidden;
+    min-height: 0;
 }
 
 .notes-title {
@@ -392,17 +393,41 @@ input[type=checkbox] {
     transition: margin 300ms;
     display: flex;
     flex-direction: row;
-    gap: 1vw;
+    /* gap: 1vw; */
     flex-wrap: wrap;
     width: 100%;
     padding: 0vw 0vw 1vw;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
 
     @media (max-width: 1024px) {
-        gap: 3vw;
+        /* gap: 3vw; */
     }
+}
+
+.notes-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.notes-list > * {
+    margin: 0 1vw 1vw 0;
+}
+
+@media (max-width: 1024px) {
+    .notes-list > * {
+        margin: 0 3vw 3vw 0;
+    }
+}
+
+.notes-main > .slideDown-enter-done,
+.notes-main > .slideDown-exit-active,
+.notes-main > .slideDown-exit,
+.notes-main > .slideDown-enter,
+.notes-main > .slideDown-enter-active {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .notes-table {

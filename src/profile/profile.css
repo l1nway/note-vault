@@ -57,6 +57,8 @@ button {
     border: 0.1vw solid var(--blck-bc-hvr);
     flex-direction: column;
     height: auto;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
 
     /* TABLET */
     @media (min-width: 769px) and (max-width: 1024px) {

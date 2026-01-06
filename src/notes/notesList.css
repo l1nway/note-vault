@@ -40,6 +40,19 @@ input[type=checkbox] {
     display: flex;
     height: 100%;
 }
+.notes-list > .slideDown-enter-done,
+.notes-list > .slideDown-exit-active,
+.notes-list > .slideDown-exit,
+.notes-list > .slideDown-enter,
+.notes-list > .slideDown-enter-active {
+    max-width: 31.9%;
+    min-width: 31.9%;
+}
+
+.note-animated-element {
+    max-width: 31.9%;
+    min-width: 31.9%;
+}
 
 .note-element {
     position: relative;
@@ -47,27 +60,13 @@ input[type=checkbox] {
     /* height: 100%; */
     /* min-height: 10rem; */
     /* max-height: 100%; */
-    max-width: 32%;
-    min-width: 32%;
     padding: 1vw;
     border: 0.1vw solid #1a2330;
     border-radius: 2vw;
     background-color: #151515;
-    transition: border 300ms, max-height 300ms, opacity 300ms, padding 300ms, min-width 300ms, max-width 300ms, margin 300ms;
+    transition: border 300ms, opacity 300ms;
+    /*  */
 }
-
-    @media (max-width: 1280px) {
-        .note-element {
-            min-width: 49%;
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .note-element {
-            min-height: 17.25vh;
-            min-width: 47.75%;
-        }
-    }
 
 .note-element:hover,
 .note-element:focus {
@@ -83,8 +82,6 @@ input[type=checkbox] {
     /* grid-template-columns: 2.5fr minmax(7vw, max-content) minmax(7vw, max-content) minmax(6vw, max-content) 4vw; */
     align-items: center;
     height: fit-content;
-    min-width: 100%;
-    max-width: 100%;
     /* min-height: 6rem;
     max-height: 100%; */
 
@@ -96,6 +93,11 @@ input[type=checkbox] {
         padding: 2.5vw;
         gap: 2vw;
     }
+}
+
+.note-animated-element:has(.list-view:checked) {
+    min-width: 100%;
+    max-width: 100%;
 }
 
 .--archiving {
@@ -470,5 +472,95 @@ input[type=checkbox] {
 
     @media (max-width: 1024px) {
         flex-direction: column;
+    }
+}
+
+.load-more-button {
+    display: flex;
+    font-size: 3vw;
+    color: var(--def-btn-hvr);
+    background-color: #151515;
+    padding: 1vw;
+    border-radius: 2vw;
+    border: 0.1vw solid #1a2330;
+    align-items: center;
+    cursor: pointer;
+    justify-content: center;
+    transition: 300ms color, 300ms border, 300ms opacity;
+
+    &:hover {
+        border: 0.1vw solid var(--def-btn);
+        color: var(--def-btn);
+    }
+}
+
+.load-more-text {
+    animation: textFade 300ms ease;
+}
+
+@keyframes textFade {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.load-more-dots {
+    display: inline-flex;
+    gap: 5px;
+    padding-left: 0.5vw;
+    height: 2rem;
+    align-items: end;
+    padding-bottom: 0.5%;
+    transition: 300ms opacity;
+}
+
+.load-more-dots i {
+    width: 0.35vw;
+    height: 0.35vw;
+    background: currentColor;
+    border-radius: 50%;
+    animation: blink 1.4s infinite both;
+    
+    @media (max-width: 1024px) {
+        width: 1vw;
+        height: 1vw;
+    }
+}
+
+.load-more-dots i:nth-child(1) {animation-delay: 0s;}
+.load-more-dots i:nth-child(2) {animation-delay: .2s;}
+.load-more-dots i:nth-child(3) {animation-delay: .4s;}
+
+@keyframes blink {
+  0%   {opacity: .2;}
+  20%  {opacity: 1;}
+  100% {opacity: .2;}
+}
+
+@media (max-width: 1280px) {
+    .note-animated-element,
+    .notes-list > .slideDown-enter-done,
+    .notes-list > .slideDown-exit-active,
+    .notes-list > .slideDown-exit,
+    .notes-list > .slideDown-enter,
+    .notes-list > .slideDown-enter-active {
+        min-width: 48.5%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .note-animated-element,
+    .notes-list > .slideDown-enter-done,
+    .notes-list > .slideDown-exit-active,
+    .notes-list > .slideDown-exit,
+    .notes-list > .slideDown-enter,
+    .notes-list > .slideDown-enter-active {
+        min-height: 17.25vh;
+        min-width: 47.75%;
     }
 }

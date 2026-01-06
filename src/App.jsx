@@ -63,8 +63,9 @@ function App() {
   // — js-cookie
   // — React Router
   // — Font Awesome
+  // — framer-motion
   // — react-i18next
-  // — OverlayScrollbars
+  // — TanStack Query
   // — React Hotkeys Hook
   // — react-color-palette
   // — use-gesture by pmndrs

@@ -89,30 +89,25 @@
   .slideDown-enter {
     overflow: hidden;
     height: 0;
-    width: 100%;
   }
 
   .slideDown-enter-active {
     overflow: hidden;
     transition: height 300ms ease;
-    width: 100%;
   }
 
   .slideDown-enter-done {
     height: auto;
-    width: 100%;
   }
 
   .slideDown-exit {
     overflow: hidden;
-    width: 100%;
   }
 
   .slideDown-exit-active {
     overflow: hidden;
     height: 0;
     transition: height 300ms ease;
-    width: 100%;
   }
 
   /*  */

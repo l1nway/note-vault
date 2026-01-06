@@ -23,6 +23,7 @@ function SlideDown({visibility, children, duration = 300}) {
                     overflow: 'hidden',
                     transition: `height ${duration}ms ease`
                 }}
+                className='slideDown-enter-done'
             >
                 {children}
             </div>

@@ -332,6 +332,15 @@
     }
 }
 
+.newnote-name-label .slideDown-enter-done,
+.newnote-name-label .slideDown-exit-active,
+.newnote-name-label .slideDown-exit,
+.newnote-name-label .slideDown-enter,
+.newnote-name-label .slideDown-enter-active,
+.newnote-name-label > div {
+    width: 100%;
+}
+
 .newnote-name-title{
     display: flex;
     align-items: center;

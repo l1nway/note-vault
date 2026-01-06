@@ -1,5 +1,10 @@
 .trash-main {
     width: 100%;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .trash-title {
@@ -131,9 +136,18 @@
     flex-wrap: wrap;
     /* justify-content: space-between; */
     width: 100%;
-    height: 100%;
     display: flex;
     min-height: 0;
+    padding-bottom: 1.25vw;
+}
+
+.trash-main > .slideDown-enter-done,
+.trash-main > .slideDown-exit-active,
+.trash-main > .slideDown-exit,
+.trash-main > .slideDown-enter,
+.trash-main > .slideDown-enter-active {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
 }
 
 .trash-button-checkbox {

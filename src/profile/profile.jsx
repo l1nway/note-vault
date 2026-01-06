@@ -1,7 +1,5 @@
 import './profile.css'
 
-import {OverlayScrollbarsComponent} from 'overlayscrollbars-react'
-import 'overlayscrollbars/overlayscrollbars.css'
 import {useTranslation} from 'react-i18next'
 import {useLocation} from 'react-router'
 
@@ -159,16 +157,6 @@ function Profile() {
                     </SlideDown>
                 </div>
             </SlideDown>
-            <OverlayScrollbarsComponent
-                className='profile-scroll'
-                options={{
-                    scrollbars: {
-                        autoHide: 'never',
-                        autoHideDelay: 0,
-                        theme: 'os-theme-dark'
-                    }
-                }}
-            >
                 <div
                     className='profile-block'
                 >
@@ -314,7 +302,6 @@ function Profile() {
                     </div>
                     {/* slideDown window for specific settings */}
                 </div>
-            </OverlayScrollbarsComponent>
         </div>
     )
 }

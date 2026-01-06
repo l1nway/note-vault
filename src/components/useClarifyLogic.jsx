@@ -181,8 +181,8 @@ const useClarifyLogic = (props) => {
             syncing: false
         })
 
-        props.setName('')
-        props.setColor('')
+        props?.setName('')
+        props?.setColor('')
 
         if (currentPath == 'archived' || currentPath == 'trash') {
             setNotes(prev => prev.map(item =>

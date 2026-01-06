@@ -16,6 +16,7 @@
     transform: none;
     pointer-events: none;
     z-index: 2;
+    scrollbar-gutter: stable;
 
     @media (max-width: 1024px) {
         position: fixed;
@@ -44,12 +45,11 @@
     position: relative;
     background-color: var(--blck-bc);
     flex-direction: column;
-    padding: 1vw 1.25vw 2vw 1.75vw;
+    padding: 1vw 1.25vw 2vw 1.25vw;
     border-radius: 2vw;
     width: 50%;
     transition: 300ms filter;
     pointer-events: auto;
-    overflow-y: auto;
     justify-content: flex-start;
     display: inline-flex;
     text-align: left;

@@ -1,6 +1,6 @@
 import './notesList.css'
 
-import {useState, useEffect, useMemo} from 'react'
+import {useState, useEffect, useMemo, useCallback, useRef} from 'react'
 import {useLocation} from 'react-router'
 import Cookies from 'js-cookie'
 
@@ -87,6 +87,7 @@ function notesLogic(props) {
         setNotesError(true)
     } finally {
         setNotesLoading(false)
+        setLoadMoreText('Load more')
     }}
 
     useEffect(() => {
@@ -107,9 +108,12 @@ function notesLogic(props) {
         }
     }, [online])
 
+    const [loadMoreText, setLoadMoreText] = useState('Load more')
+
     const loadMore = () => {
         if (page < lastPage) {
             setPage(prev => prev + 1)
+            setLoadMoreText('Loading')
         }
     }
 
@@ -144,7 +148,8 @@ function notesLogic(props) {
         queryString,
         loadMore,
         page,
-        lastPage
+        lastPage,
+        loadMoreText
     }
 }
 
