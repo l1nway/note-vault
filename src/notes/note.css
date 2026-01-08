@@ -1,6 +1,8 @@
 .note-main {
     padding: 15px 2vw 0vw 2vw;
     width: 100%;
+    height: 100%;
+    overflow: hidden;
 
     @media (max-width: 1024px) {
         display: flex;
@@ -9,6 +11,18 @@
         height: 100%;
         justify-content: space-between;
     }
+}
+
+.note-main .slideDown-enter-done,
+.note-main .slideDown-exit-active,
+.note-main .slideDown-exit,
+.note-main .slideDown-enter,
+.note-main .slideDown-enter-active {
+    scrollbar-gutter: stable;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    padding-bottom: 2vw;
+    width: 100%;
 }
 
 .note-header {
@@ -59,12 +73,20 @@
     border: 0.1vw solid var(--blck-bc-fcs);
 }
 
+.note-button:disabled {
+    cursor: not-allowed;
+    background-color: var(--blck-bc-fcs);
+    outline: none;
+    color: var(--blck-bc);
+    filter: brightness(0.5);
+}
+
 .note-info {
+    overflow: hidden;
     display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    padding: 5% 10%;
-    height: 90%;
+    height: 100%;
+    padding-bottom: 4vw;
+    width: 100%;
 
     @media (max-width: 1024px) {
         padding: 0;
@@ -89,6 +111,7 @@
     display: flex;
     gap: 1vw;
     align-items: center;
+    padding: 0vw 0vw 1.25vw 0vw;
 
     @media (max-width: 1024px) {
         flex-direction: column;
@@ -113,7 +136,7 @@
     display: flex;
     align-items: center;
     gap: 0.5vw;
-    min-height: 10%;
+    padding: 0vw 0vw 1.25vw 0vw;
 
     @media (max-width: 1024px) {
         gap: 3vw;
@@ -141,8 +164,8 @@
     display: flex;
     align-items: center;
     gap: 0.5vw;
-    color: aqua;
-    background-color: yellowgreen;
+    color: #d1d5dc;
+    background-color: var(--blck-bc-hvr);
     padding: 0.5vw 1vw;
     border-radius: 1vw;
     width: fit-content;
@@ -161,16 +184,16 @@
 
 .note-info-category:hover,
 .note-info-category:focus {
-    border: 0.1vw solid var(--blck-bc-fcs);
-    background-color: blueviolet;
+    background-color: var(--blck-bc);
     outline: none;
+    border-color: var(--cat-color);
 }
 
 .info-category-circle {
     width: 1vw;
     height: 1vw;
-    background-color: blueviolet;
     border-radius: 1vw;
+    background-color: var(--cat-color);
 
     @media (max-width: 1024px) {
         width: 7vw;
@@ -182,6 +205,7 @@
 .note-info-tags {
     display: flex;
     gap: 0.5vw;
+    overflow-y: auto;
 
     @media (max-width: 1024px) {
         gap: 2vw;

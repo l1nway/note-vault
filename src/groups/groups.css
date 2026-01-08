@@ -239,6 +239,7 @@
 }
 
 .group-element {
+    cursor: pointer;
     justify-content: space-between;
     display: flex;
     flex-direction: row-reverse;
@@ -249,14 +250,17 @@
     min-width: 24%;
     padding: 1vw 1.5vw;
     transition: 
-        opacity 300ms,
+        height 300ms,
+        width 300ms,
         max-width 300ms,
-        max-height 300ms,
         min-width 300ms,
+        max-height 300ms,
         min-height 300ms,
+        border 300ms,
+        opacity 300ms,
+        pading 300ms,
         padding 300ms,
-        margin 300ms,
-        border 300ms;
+        margin 300ms;
 }
 
 .group-element:hover,
@@ -301,35 +305,60 @@
 }
 
 .--disappearance {
-    transition: opacity 5000ms, min-width 5000ms, max-width 5000ms, padding 5000ms, 5000ms border;
+    overflow: hidden;
+    transition: 
+        opacity 5000ms,
+        min-width 5000ms,
+        max-width 5000ms,
+        padding 2500ms ease 2500ms,
+        margin 2500ms ease 2500ms,
+        border-width 2250ms ease 250ms;
     min-width: 0vw;
     max-width: 0vw;
     opacity: 0;
     padding: 0;
-    outline: 0.1vw solid var(--del-btn);
-    outline-offset: -0.1vw;
-    border: 0;
+    margin: 0;
+    border-radius: 2vw;
+    border-width: 0;
     animation: deleting-border 1200ms ease-in-out infinite;
+}
+
+.--del-list {
+    height: 0;
+    min-width: 100% !important;
+    max-height: 0 !important;
+    min-height: 0 !important;
+    transition: 300ms max-height, 300 min-height;
 }
 
 @keyframes deleting-border {
     0% {
-        outline-color: var(--del-btn);
+        border-color: var(--del-btn);
     }
     50% {
-        outline-color: transparent;
+        border-color: var(--blck-bc-hvr);
     }
     100% {
-        outline-color: var(--del-btn);
+        border-color: var(--del-btn);
     }
 }
 
 .--archiving {
-    transition: opacity 5000ms, min-width 10000ms, max-width 10000ms;
-    min-width: 0%;
-    max-width: 0%;
+    overflow: hidden;
+    transition: 
+        opacity 5000ms,
+        min-width 5000ms,
+        max-width 5000ms,
+        padding 2500ms ease 2500ms,
+        margin 2500ms ease 2500ms,
+        border-width 2250ms ease 250ms;
+    min-width: 0vw;
+    max-width: 0vw;
     opacity: 0;
-    border: 0.1vw solid var(--del-btn);
+    padding: 0;
+    margin: 0;
+    border-radius: 2vw;
+    border-width: 0;
     animation: archiving-border 1200ms ease-in-out infinite;
 }
 
@@ -401,6 +430,7 @@
     
     @media (max-width: 1024px) {
         opacity: 1;
+        height: 100%;
     }
 }
 
@@ -459,7 +489,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 35vw;
+        max-width: 30vw;
     }
 }
 
@@ -474,6 +504,10 @@
 .group-amount {
     transition: color 300ms;
     color: var(--blck-bc-fcs);
+
+    @media (max-width: 1024px) {
+        text-align: start;
+    }
 }
 
 .group-element:has(.list-view:checked) .group-amount {

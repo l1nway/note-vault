@@ -24,6 +24,7 @@ function SlideDown({visibility, children, duration = 300}) {
                     transition: `height ${duration}ms ease`
                 }}
                 className='slideDown-enter-done'
+                tabIndex={-1}
             >
                 {children}
             </div>

@@ -1,48 +1,42 @@
 import '../notes/notesList.css'
 
-import {useMemo} from 'react'
+import React, {useCallback, useMemo} from 'react'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {Link, useLocation} from 'react-router'
-import MDEditor from '@uiw/react-md-editor'
 import {useTranslation} from 'react-i18next'
+import {motion} from 'framer-motion'
 
 import {faTrashCanArrowUp, faTrash as faTrashSolid, faBoxArchive as faBoxArchiveSolid, faFloppyDisk, faTriangleExclamation, faTrashCan, faBoxOpen, faServer, faTowerBroadcast} from '@fortawesome/free-solid-svg-icons'
 
-import {clarifyStore, notesViewStore, pendingStore, appStore} from '../store'
-
 import SlideLeft from '../components/slideLeft'
-import SlideDown from './slideDown'
+import {notesViewStore} from '../store'
 
-function noteCard({note, onAction, setCategory, setTag}) {
+const MarkdownPreview = React.lazy(() => import('./mdprev'))
+
+const allActions = {
+    notes: [
+        {type: 'archive', icon: faBoxArchiveSolid},
+        {type: 'delete', icon: faTrashSolid}
+    ],
+    archived: [
+        {type: 'unarchive', icon: faBoxOpen},
+        {type: 'delete', icon: faTrashSolid}
+    ],
+    trash: [
+        {type: 'restore', icon: faTrashCanArrowUp},
+        {type: 'force', icon: faTrashSolid}
+    ]
+}
+
+const noteCard = React.memo(function NoteCard({note, onAction, setCategory, setTag, setNoteInfo, retryFunction}) {
     const location = useLocation()
     const path = location.pathname.slice(1)
     const {t, i18n} = useTranslation()
-    const {setNoteInfo, notes} = appStore()
-    
-    const {undo, pendings} = pendingStore()
 
-    const pending = useMemo(() => pendings.find(p => p.id == note.id), [pendings, note.id])
-    const isPending = useMemo(() => Boolean(pending), [pending])
-
-    const pendingAction = useMemo(() => pending?.action, [pending])
-
-    const {retryFunction} = clarifyStore()
-    const {notesView} = notesViewStore()
-
-    const allActions = useMemo(() => ({
-        notes: [
-            {type: 'archive', icon: faBoxArchiveSolid},
-            {type: 'delete', icon: faTrashSolid}
-        ],
-        archived: [
-            {type: 'unarchive', icon: faBoxOpen},
-            {type: 'delete', icon: faTrashSolid}
-        ],
-        trash: [
-            {type: 'restore', icon: faTrashCanArrowUp},
-            {type: 'force', icon: faTrashSolid}
-        ]
-    }))
+    const notesView = notesViewStore(
+        state => state.notesView,
+        (a, b) => a == b
+    )
 
     const renderButtons = useMemo(() => 
         allActions[path]?.map((action, index) => (
@@ -53,16 +47,15 @@ function noteCard({note, onAction, setCategory, setTag}) {
                 tabIndex='0'
                 onClick={e => {
                     e.preventDefault()
-                    if (isPending) return
                     onAction(action.type, note.id)
                 }}
             />
-    )))
+    )), [path, onAction, note.id])
 
     const renderTags = useMemo(() => 
         note.tags?.map((tagElement, index) => (
             <div
-                key={index}
+                key={tagElement.id}
                 className='note-tag'
                 onClick={(e) => {
                     e.preventDefault()
@@ -71,168 +64,147 @@ function noteCard({note, onAction, setCategory, setTag}) {
             >
                 {tagElement.name}
             </div>
-    )))
+    )), [note.tags])
+
+    const StatusIcon = React.memo(({visible, icon, className, onClick}) => (
+        <SlideLeft visibility={visible}>
+            <FontAwesomeIcon
+                className={className}
+                icon={icon}
+                onClick={onClick}
+            />
+        </SlideLeft>
+    ))
+
+    const click = useCallback((e) =>{
+        if (path == 'trash' || path == 'archived') {
+            e.preventDefault()
+            return
+        }
+        setNoteInfo(note)
+    })
 
     return (
-        <Link
-            className={`note-element${
-                isPending
-                    ? pendingAction == 'archive'
-                        ? ' --archiving'
-                        : ' --disappearance'
-                    : ''
-            }`}
-            state={note.id}
-            to={`note/${note.id}`}
-            onClick={(e) => {
-                if (isPending || path != 'notes') {
-                    e.preventDefault()
-                    undo(pending?.pendingId)
-                    return
-                } else {
-                    setNoteInfo(notes.find(n => n.id == note.id))
-                }
-            }}
+        <motion.div
+            tabIndex={0}
+            className='note-animated-element'
+            layout='position'
         >
-            {/* input for css only */}
-            <input
-                type='checkbox'
-                className='list-view'
-                checked={notesView == 'list'}
-                readOnly
-            />
-            <SlideDown
-                visibility={!isPending}
+            <Link
+                tabIndex={-1}
+                className='note-element'
+                state={note.id}
+                to={`note/${note.id}`}
+                onClick={(e) => click(e)}
             >
+                {/* input for css only */}
+                <input
+                    type='checkbox'
+                    className='list-view'
+                    checked={notesView == 'list'}
+                    readOnly    
+                />
                 <div
                     className='note-buttons'
                 >
                     {renderButtons}
                 </div>
-            </SlideDown>
-            <div
-                className='note-content'
-            >
                 <div
-                    className='note-top-group'
+                    className='note-content'
                 >
                     <div
-                        className='note-title-top'
+                        className='note-top-group'
                     >
-                        <h2
-                            className='note-title'
+                        <div
+                            className='note-title-top'
                         >
-                            {t(note.title)}
-                        </h2>
-                        <SlideLeft
-                            visibility={note.saving}
-                        >
-                            <FontAwesomeIcon
+                            <h2
+                                className='note-title'
+                            >
+                                {t(note.title)}
+                            </h2>
+                            <StatusIcon
+                                visible={note.saving}
                                 className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
                                 icon={retryFunction == 'delete' ? faTrashCan : faFloppyDisk}
                             />
-                        </SlideLeft>
-                        <SlideLeft
-                            visibility={note.error}
-                        >
-                            <FontAwesomeIcon
+                            <StatusIcon
+                                visible={note.error}
                                 className='loading-error-icon'
                                 icon={faTriangleExclamation}
                                 onClick={(e) => {
                                     e.preventDefault()
                                     setElementID(note.id)
-                                    // openAnim()
-                                    // setName()
-                                    // setColor()
                                 }}
                             />
-                        </SlideLeft>
-                        <SlideLeft
-                            visibility={isPending}
-                        >
-                            <FontAwesomeIcon
-                                className='loading-save-icon --restore'
-                                icon={
-                                    pendingAction == 'archive'
-                                        ? faBoxOpen
-                                        : faTrashCanArrowUp
-                                }
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    undo(pending?.pendingId)
-                                }}
-                            />
-                        </SlideLeft>
-                        <SlideLeft
-                            visibility={note.offline}
-                        >
-                            <FontAwesomeIcon
+                            <StatusIcon
+                                visible={note.offline}
                                 className='note-offline-icon'
                                 icon={faServer}
                             />
-                        </SlideLeft>
-                        <SlideLeft
-                            visibility={note.syncing}
-                        >
-                            <FontAwesomeIcon
+                            <StatusIcon
+                                visible={note.syncing}
                                 className='note-offline-icon'
                                 icon={faTowerBroadcast}
                             />
-                        </SlideLeft>
+                        </div>
+                        {note.is_markdown ?
+                            <React.Suspense fallback={null}>
+                                <MarkdownPreview content={note.content}/>
+                            </React.Suspense>
+                            : 
+                            <p
+                                className='note-desc'
+                            >
+                                {t(note.content)}
+                            </p>
+                        }
                     </div>
-                    {note.is_markdown ? 
-                        <MDEditor.Markdown
-                            source={note.content}
-                        />
-                        : 
-                        <p
-                            className='note-desc'
+                    <div
+                        className='note-bottom-group'
+                    >
+                        <div
+                            className='note-cats'
                         >
-                            {t(note.content)}
-                        </p>
-                    }
-                </div>
-                <div
-                    className='note-bottom-group'
-                >
-                    <div
-                        className='note-cats'
-                    >
-                        {note.category ? 
-                            <div
-                                className='note-category'
-                                style={{backgroundColor: note.category.color}}
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    setCategory(note.category)
-                                }}
-                            >
                                 <div
-                                    className='category-circle'
-                                />
-                                <div
-                                    className='category-text'
+                                    className='note-category'
+                                    style={{
+                                        padding: note.category ? 'revert-layer' : 0,
+                                        '--cat-color': note.category?.color
+                                    }}
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        setCategory(note.category)
+                                    }}
                                 >
-                                    {t(note.category?.name)}
+                                    {note.category ? 
+                                        <>
+                                            <div
+                                                className='category-circle'
+                                            />
+                                            <div
+                                                className='category-text'
+                                            >
+                                                {t(note.category?.name)}
+                                            </div>
+                                        </> : null} 
                                 </div>
-                            </div>
-                        : null}
-                        {note.tags ?
-                            <div
-                                className='note-tags'
-                            >
-                                {renderTags}
-                            </div>
-                        : null}
-                    </div>
-                    <div
-                        className='note-date'
-                    >
-                        {new Date(note.created_at).toLocaleDateString(i18n.language, {month: 'short', day: 'numeric'})}
+                                <div
+                                    className='note-tags'
+                                    tabIndex={-1}
+                                >
+                                    {renderTags}
+                                </div>
+                        </div>
+                        <div
+                            className='note-date'
+                        >
+                            {new Date(note.created_at).toLocaleDateString(i18n.language, {month: 'short', day: 'numeric'})}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Link>
-    )}
+            </Link>
+        </motion.div>
+    )})
 
 export default noteCard

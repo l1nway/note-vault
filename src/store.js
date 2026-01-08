@@ -132,6 +132,17 @@ export const clarifyStore = create((set) => ({
   notesMessage: '',
   setNotesMessage: (clarify) => set({notesMessage: clarify}),
 
+  category: null,
+  tag: null,
+  search: '',
+
+  setCategory: (category) =>
+    set({category}),
+  setTag: (tag) =>
+    set({tag}),
+  setSearch: (search) =>
+    set({search}),
+
   // 
   clarifyLoading: true,
   loadingError: false,
@@ -153,21 +164,20 @@ export const clarifyStore = create((set) => ({
 export const pendingStore = create((set, get) => ({
   pendings: [],
 
-  schedule: ({pendingId, id, action, path, payload, onCommit, onTimeout}) => {
-    
-    get().undo(pendingId)
+  schedule: ({id, action, path, payload, onCommit, onTimeout}) => {
+    const pendingId = crypto.randomUUID()
 
     const timeoutId = setTimeout(() => {
-      const isOnline = navigator.onLine
+      const currentItem = get().pendings.find(p => p.pendingId == pendingId)
 
-      if (isOnline) {
+      if (!currentItem) return
+      if (navigator.onLine) {
         get().commit(pendingId)
-      } else {
-        if (onTimeout) onTimeout()
-          set(state => ({
-            pendings: state.pendings.filter(p => p.pendingId !== pendingId)
-          }))}
-      }, 5000)
+      } else {if (onTimeout) {
+        onTimeout()
+        get().remove(pendingId)
+      }
+      }}, 5000)
 
     set(state => ({
       pendings: [
@@ -186,20 +196,23 @@ export const pendingStore = create((set, get) => ({
         }
       ]
     }))
+    return pendingId
   },
 
   commit: async (pendingId) => {
     const item = get().pendings.find(p => p.pendingId == pendingId)
     if (!item || item.status == 'processing') return
 
+    if (item.timeoutId) clearTimeout(item.timeoutId)
+
     set(state => ({
       pendings: state.pendings.map(p => p.pendingId == pendingId ? {...p, status: 'processing'} : p)
     }))
-
     try {
       await item.onCommit()
       get().remove(pendingId)
     } catch (e) {
+      get().remove(pendingId)
       console.error('error', e)
       set(state => ({
         pendings: state.pendings.map(p => p.pendingId == pendingId ? {...p, status: 'ready'} : p)
@@ -223,11 +236,14 @@ export const pendingStore = create((set, get) => ({
     get().remove(pendingId)
   },
 
-  remove: (pendingId) =>
+  remove: (pendingId) => {
+    const item = get().pendings.find(p => p.pendingId === pendingId)
+    if (item?.timeoutId) clearTimeout(item.timeoutId)
+
     set(state => ({
       pendings: state.pendings.filter(p => p.pendingId !== pendingId)
     }))
-}))
+}}))
 
 export const editorStore = create((set) => ({
   act: false,

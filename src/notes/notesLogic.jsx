@@ -1,47 +1,54 @@
 import './notesList.css'
 
-import {useState, useEffect, useMemo, useCallback, useRef} from 'react'
-import {useLocation} from 'react-router'
+import {useState, useEffect, useMemo, useCallback} from 'react'
+import {useShallow} from 'zustand/react/shallow'
 import Cookies from 'js-cookie'
 
-import {apiStore, appStore, clarifyStore} from '../store'
+import {apiStore, clarifyStore} from '../store'
+import getNotes from './getNotes'
+import useDebounce from './useDebounce'
 
-function notesLogic(props) {
-
-    const {online} = apiStore()
-    const {notes, setNotes} = appStore()
-    
-    const [filteredNotes, setFilteredNotes] = useState()
-
-    const location = useLocation()
-    const path = location.pathname.slice(1)
+function notesLogic() {
+    const online = apiStore(state => state.online)
+    const offlineMode = apiStore(state => state.offlineMode)
 
     // managing windows for deleting, archiving and editing
-    const {
-        action, setAction,
-        animating, setAnimating,
-        setNotesError, notesError,
-        notesLoading, setNotesLoading,
-        setNotesMessage, notesMessage,
-        category, tag, search,
-        setVisibility,
-        setClarifyLoading,
-        setRetryFunction
-    } = clarifyStore()
+    const {action, setAction, animating, setAnimating, setNotesError, notesError, notesLoading, setNotesLoading, setNotesMessage, notesMessage, category, tag, search, setVisibility, setClarifyLoading, setRetryFunction} = clarifyStore(
+        useShallow(state => ({
+            action: state.action,
+            setAction: state.setAction,
+            animating: state.animating,
+            setAnimating: state.setAnimating,
+            setNotesError: state.setNotesError,
+            notesError: state.notesError,
+            notesLoading: state.notesLoading,
+            setNotesLoading: state.setNotesLoading,
+            setNotesMessage: state.setNotesMessage,
+            notesMessage: state.notesMessage,
+            category: state.category,
+            tag: state.tag,
+            search: state.search,
+            setVisibility: state.setVisibility,
+            setClarifyLoading: state.setClarifyLoading,
+            setRetryFunction: state.setRetryFunction
+    })))
 
     //
     const [elementID, setElementID] = useState('')
+    const [page, setPage] = useState(1)
+    const [lastPage, setLastPage] = useState(0)
+    const [loadMoreText, setLoadMoreText] = useState('Load more')
+
+    const debouncedSearch = useDebounce(search, 300)
 
     // checks for the presence of a token in cookies and local storage
-    const token = [localStorage.getItem('token'), Cookies.get('token')]
+    const token = useMemo(
+        () => [localStorage.getItem('token'), Cookies.get('token')]
         .find(
             token => token
         &&
             token !== 'null'
-    )
-
-    const [page, setPage] = useState(1)
-    const [lastPage, setLastPage] = useState(0)
+    ))
 
     const queryString = useMemo(() => {
         const params = []
@@ -53,52 +60,23 @@ function notesLogic(props) {
             params.push(`tag_id=${tag.id}`)
 
         if (search)
-            params.push(`q=${search}`)
+            params.push(`q=${debouncedSearch}`)
 
         params.push(`page=${page}`)
         
         return params.length ? `?${params.join('&')}` : ''
-    }, [category?.id, tag?.id, search, page])
+    }, [category?.id, tag?.id, debouncedSearch, page])
 
     // gets a list of notes from the server
-    const getNotes = async () => {
-        try {
-            notes.length == 0 && setNotesLoading(true)
-            setNotesError(false)
-
-        const res = await fetch(
-        `http://api.notevault.pro/api/v1/notes${queryString}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: `Bearer ${token}`,
-            },
-        })
-
-        if (!res.ok) throw new Error('Fetch failed')
-        
-        const resData = await res.json()
-        page == 1 ? setNotes(resData.data) : setNotes(prev => [...prev, ...resData.data])
-
-        setLastPage(resData.last_page)
-    } catch (error) {
-        setNotesMessage(error.message)
-        setNotesError(true)
-    } finally {
-        setNotesLoading(false)
-        setLoadMoreText('Load more')
-    }}
-
     useEffect(() => {
         setPage(1)
-    }, [category, tag, search])
+    }, [category, tag, debouncedSearch])
 
     useEffect(() => {
         if (online && token) {
-            getNotes()
+            getNotes(queryString, page, setLastPage, setLoadMoreText)
         }
-    }, [queryString, online, token])
+    }, [queryString, token, offlineMode])
 
     useEffect(() => {
         if (Cookies.get('offline') != 'true' && !online) {
@@ -108,16 +86,14 @@ function notesLogic(props) {
         }
     }, [online])
 
-    const [loadMoreText, setLoadMoreText] = useState('Load more')
-
-    const loadMore = () => {
+    const loadMore = useCallback(() => {
         if (page < lastPage) {
             setPage(prev => prev + 1)
             setLoadMoreText('Loading')
         }
-    }
+    }, [lastPage])
 
-    const openAnim = (action) => {
+    const openAnim = useCallback((action) => {
         if (animating == true) {
             return false
         }
@@ -133,24 +109,10 @@ function notesLogic(props) {
         setTimeout(() => {
             setAnimating(false)
         }, 300)
-    }
+    }, [animating, setAction, setRetryFunction, setClarifyLoading, setVisibility, setAnimating])
 
-    return {
-        notesLoading,
-        notesError,
-        notesMessage,
-        action,
-        elementID,
-        setElementID,
-        getNotes,
-        openAnim,
-        filteredNotes,
-        queryString,
-        loadMore,
-        page,
-        lastPage,
-        loadMoreText
-    }
+    return useMemo(() => ({notesLoading, notesError, notesMessage, action, elementID, setElementID, getNotes, openAnim, queryString, loadMore, page, lastPage, loadMoreText
+    }), [notesLoading, notesError, notesMessage, action, elementID, getNotes, openAnim, queryString, loadMore, page, lastPage, loadMoreText])
 }
 
 export default notesLogic

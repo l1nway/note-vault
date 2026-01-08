@@ -361,7 +361,7 @@ input[type=checkbox] {
     width: 0.75vw;
     height: 0.75vw;
     border-radius: 50%;
-    background-color: #ec4899;
+    background-color: var(--cat-color);
 
     @media (max-width: 1024px) {
         width: 3vw;
@@ -371,6 +371,7 @@ input[type=checkbox] {
 
 .category-text {
     text-transform: capitalize;
+    mix-blend-mode: difference;
 }
 
 .trash-date {

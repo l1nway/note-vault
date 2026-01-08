@@ -1,6 +1,7 @@
 
-import {useState, useEffect, useRef} from 'react'
+import {useState, useEffect, useRef, useCallback, useMemo} from 'react'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {useShallow} from 'zustand/react/shallow'
 import {faXmark, faSpinner, faTriangleExclamation, faArrowUp as faArrowUpSolid, faBookmark as faBookmarkSolid} from '@fortawesome/free-solid-svg-icons'
 import {ColorPicker, useColor} from 'react-color-palette'
 import 'react-color-palette/css'
@@ -15,7 +16,14 @@ import {shake, clearShake} from '../components/shake'
 const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const online = apiStore(state => state.online)
-    const {offlineMode, setArchive, setTrash, notes} = appStore()
+    const schedule = pendingStore(state => state.schedule)
+    const {offlineMode, setArchive, setTrash, notes} = appStore(
+        useShallow(state => ({
+            offlineMode: state.offlineMode,
+            setArchive: state.setArchive,
+            setTrash: state.setTrash,
+            notes: state.notes
+    })))
 
     const {state, actions, pathData} = logic
     const {action, clarifyLoading, loadingError} = state
@@ -24,15 +32,13 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
 
     const clarify = clarifyValue[effectivePath]?.[action]
 
-    const {schedule} = pendingStore()
-
     const [color, setColor] = useColor(props.color ? props.color : 'white')
 
     const [picker, setPicker] = useState(false)
 
     const [save, setSave] = useState(false)
 
-    const disabled = loadingError || (!offlineMode && !online) || clarifyLoading || ((action == 'new' || action == 'edit') && props.name == '')
+    const disabled = useMemo(() => loadingError || (!offlineMode && !online) || clarifyLoading || ((action == 'new' || action == 'edit') && props.name == ''), [loadingError, offlineMode, online, clarifyLoading, action, props.name])
 
     const inputRef = useRef(null)
 
@@ -41,6 +47,50 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
     useEffect(() => {
         props?.setColor?.(color?.hex)
     }, [color])
+
+    const clarifyCancel = useCallback(() => {
+        closeAnim()
+        props?.setName?.('')
+        props?.setColor?.('')
+        props?.setID?.('')
+        setClarifyLoading(true)
+    }, [closeAnim, props, setClarifyLoading])
+
+    const clarifyAction = useCallback(() => {
+        if (disabled) {
+            setInputNull(true)
+            shake(inputRef.current)
+            return
+        }
+
+        // const context = {
+        //     id: props.id,
+        //     action: action,
+        //     name: props.name,
+        //     color: props.color,
+        //     path: path
+        // }
+        
+        offlineChange()
+        // if (action == 'force') {
+        //     schedule({
+        //         ...context,
+        //         onTimeout: () => offlineChange(context), 
+        //         onCommit: () => change(context) 
+        //     })
+        //     closeAnim()
+        // }
+        
+        props?.setName?.('')
+        props?.setColor?.('')
+        props?.setID?.('')
+    }, [disabled, props, action, path, offlineChange, schedule, change, setArchive, setTrash, notes, online, closeAnim])
+
+    const clarifyInput = useCallback((e) => {
+        props.setName(e.target.value)
+        setInputNull(false)
+        clearShake(inputRef.current)
+    })
 
     return (
         <div
@@ -114,11 +164,7 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
                             disabled={loadingError || (!offlineMode && !online)}
                             ref={inputRef}
                             value={props.name}
-                            onChange={e => {
-                                props.setName(e.target.value)
-                                setInputNull(false)
-                                clearShake(inputRef.current)
-                            }}
+                            onChange={e => clarifyInput(e)}
                             placeholder={
                                 path == 'categories'
                                     ? t('e.g. work, personal, ideas')
@@ -225,71 +271,14 @@ const ClarifyView = ({t, logic, props, renderColors}) => {
             <div className='clarify-buttons'>
                 <button
                     className='clarify-cancel'
-                    onClick={() => {
-                        closeAnim()
-                        props?.setName?.('')
-                        props?.setColor?.('')
-                        props?.setID?.('')
-                        setClarifyLoading(true)
-                    }}
+                    onClick={() => clarifyCancel()}
                 >
                     {t('cancel')}
                 </button>
 
                 <button
                     className={`clarify-action ${disabled && 'clarify-action-disabled'}`}
-                    onClick={() => {
-                        if (disabled) {
-                            setInputNull(true)
-                            shake(inputRef.current)
-                            return
-                        }
-
-                        const context = {
-                            id: props.id,
-                            action: action,
-                            name: props.name,
-                            color: props.color,
-                            path: path
-                        }
-                        
-                        if (action == 'new' || action == 'edit' || action == 'unarchive' || action == 'restore') {
-                            offlineChange()
-                            return
-                        }
-                        if (action == 'archive' || action == 'delete' || action == 'force') {
-                            const pendingId = crypto.randomUUID()
-                            
-                            schedule({
-                                ...context,
-                                pendingId,
-                                onTimeout: () => offlineChange(context), 
-                                onCommit: () => change(context) 
-                            })
-                            if (path == 'notes') {
-                                const setter = action == 'archive' ? setArchive : setTrash
-
-                                setter(prevNotes => {
-                                    const note = notes.find(n => n.id == props.id)
-                                    if (!note) return prevNotes
-                                    
-                                    return [{
-                                        ...note,
-                                        tempId: note.tempId ?? note.id,
-                                        offline: !online,
-                                        syncing: online,
-                                        syncAction: action
-                                    }, ...prevNotes]
-                                })
-                            }
-
-                            closeAnim()
-                        }
-                        
-                        props?.setName?.('')
-                        props?.setColor?.('')
-                        props?.setID?.('')
-                    }}
+                    onClick={() => clarifyAction()}
                     style={
                         (action == 'delete' || action == 'force')
                             ? {

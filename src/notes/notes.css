@@ -400,7 +400,7 @@ input[type=checkbox] {
     min-height: 0;
 
     @media (max-width: 1024px) {
-        /* gap: 3vw; */
+        padding: 0;
     }
 }
 

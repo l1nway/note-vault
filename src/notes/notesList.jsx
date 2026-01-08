@@ -3,72 +3,75 @@ import Cookies from 'js-cookie'
 import {motion, AnimatePresence} from 'framer-motion'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {useState, useMemo} from 'react'
+import {useState, useMemo, useCallback} from 'react'
 import ContentLoader from 'react-content-loader'
+import {useShallow} from 'zustand/react/shallow'
 import {useLocation} from 'react-router'
 import {useTranslation} from 'react-i18next'
 
 import {faPlaneCircleCheck, faTriangleExclamation, faRotateRight, faSignal} from '@fortawesome/free-solid-svg-icons'
 
-import {appStore, clarifyStore} from '../store'
+import {appStore, clarifyStore, notesViewStore, pendingStore} from '../store'
 
 import SlideDown from '../components/slideDown'
 import Clarify from '../components/clarify'
 import notesLogic from './notesLogic'
 import NoteCard from '../components/noteCard'
 
-function NotesList(props) {
+function NotesList() {
     const location = useLocation()
     const path = location.pathname.slice(1)
     const {t} = useTranslation()
-
-    const {setOfflineMode, notes, setNotes, online} = appStore()
     
     const [offline, setOffline] = useState(Cookies.get('offline') == 'true')
 
-    const {
-        action, notesError,
-        notesLoading,
-        notesMessage,
-    } = clarifyStore()
+    const {notes, setNotes, online, setOfflineMode, setNoteInfo} = appStore(
+        useShallow((state) => ({
+            notes: state.notes,
+            setNotes: state.setNotes,
+            online: state.online,
+            setOfflineMode: state.setOfflineMode,
+            setNoteInfo: state.setNoteInfo
+    })))
 
-    const {
-        elementID,
-        setElementID,
-        getNotes,
-        openAnim,
-        queryString,
-        filteredNotes,
-        loadMore,
-        page,
-        lastPage,
-        loadMoreText
-    } = notesLogic(props)
+    const {action, notesError, notesLoading, notesMessage, setTag, setCategory, retryFunction} = clarifyStore(
+        useShallow((state) => ({
+            action: state.action,
+            notesError: state.notesError,
+            notesLoading: state.notesLoading,
+            notesMessage: state.notesMessage,
+            setTag: state.setTag,
+            setCategory: state.setCategory,
+            retryFunction: state.retryFunction
+    })))
 
-    const handleAction = (type, id) => {
+    const notesView = notesViewStore(state => state.notesView)
+
+    // сonverts values ​​to true or false; for convenience (reducing unnecessary code with tags)
+    const listView = notesView == 'list'
+
+    const {elementID, setElementID, getNotes, openAnim, loadMore, page, lastPage, loadMoreText} = notesLogic()
+
+    const handleAction = useCallback((type, id) => {
         setElementID(id)
         openAnim(type)
-    }
+    }, [openAnim])
 
     // displaying a sorted list
     const renderNotes = useMemo(() => {
-        // const source = queryString ? filteredNotes : notes
         const source = notes
         return source?.map((element, index) =>
-            <motion.div
+            <NoteCard
                 key={element.id}
-                className='note-animated-element'
-                layout
-            >
-                <NoteCard
-                    note={element}
-                    onAction={handleAction}
-                    setCategory={props.setCategory}
-                    setTag={props.setTag}
-                />
-            </motion.div>
-        )
-    }, [queryString, filteredNotes, notes, handleAction])
+                note={element}
+                onAction={handleAction}
+                setCategory={setCategory}
+                setTag={setTag}
+                setNoteInfo={setNoteInfo}
+                retryFunction={retryFunction}
+                listView={listView}
+            />
+    )}, [notes, handleAction, setCategory, setTag])
 
     return(
         <>
@@ -168,10 +171,10 @@ function NotesList(props) {
             <SlideDown
                 visibility={!notesLoading}
             >
-                <motion.div layout className='notes-list'>
-                    <AnimatePresence>
-                        {renderNotes}
-                    </AnimatePresence>
+                <motion.div
+                    className='notes-list'
+                >
+                    {renderNotes}
                     <SlideDown
                         visibility={page < lastPage}
                     >

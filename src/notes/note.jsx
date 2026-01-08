@@ -2,27 +2,25 @@ import './note.css'
 
 import {useState, useEffect, useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Link, useNavigate, useLocation} from 'react-router'
+import {Link, useNavigate, useLocation, useParams} from 'react-router'
 import MDEditor from '@uiw/react-md-editor'
 import Cookies from 'js-cookie'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faArrowUp as faArrowUpSolid} from '@fortawesome/free-solid-svg-icons'
-import {faPenToSquare} from '@fortawesome/free-solid-svg-icons'
-import {faShareNodes} from '@fortawesome/free-solid-svg-icons'
-import {faBoxArchive} from '@fortawesome/free-solid-svg-icons'
-import {faTrash} from '@fortawesome/free-solid-svg-icons'
+import {faArrowUp as faArrowUpSolid, faPenToSquare, faTriangleExclamation, faSpinner, faPlane, faShareNodes, faBoxArchive, faTrash} from '@fortawesome/free-solid-svg-icons'
 
 import Share from '../components/share'
 import Clarify from '../components/clarify'
 import SlideDown from '../components/slideDown'
+import SlideLeft from '../components/slideLeft'
 
 import {clarifyStore, editorStore, appStore} from '../store'
 
 function Note() {
 
     const location = useLocation()
-    const {online, noteInfo, setNoteInfo} = appStore()
+    const {id} = useParams()
+    const {offlineMode, online, noteInfo, setNoteInfo} = appStore()
 
     // checks for the presence of a token in cookies and local storage
     const token = [localStorage.getItem('token'), Cookies.get('token')]
@@ -33,22 +31,24 @@ function Note() {
     )
 
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
 
     const getNote = () => {
-        fetch(`http://api.notevault.pro/api/v1/notes/${location.state}`,
-            {
-                method: 'GET',
-                headers: {
-                    'content-type': 'application/json',
-                    authorization: 
-                        `Bearer ${token}`
-                }
-            })
-        .then(res => res.json())
+    fetch(`http://api.notevault.pro/api/v1/notes/${location.state || id}`, {
+        headers: {
+            'content-type': 'application/json',
+            authorization: `Bearer ${token}`,
+        },
+    })
+        .then(res => {
+            if (!res.ok) throw new Error(res.statusText)
+            return res.json()
+        })
         .then(resData => {
             setNoteInfo(resData)
             setLoading(false)
         })
+        .catch(() => setError(true))
     }
 
     // triggers the function execution on the first load
@@ -65,23 +65,25 @@ function Note() {
 
     // list of buttons and their icons
     const buttons = useMemo(() => [{
-            'name': 'edit',
-            'icon': faPenToSquare
+            name: 'edit',
+            icon: faPenToSquare
         },{
-            'name': 'share',
-            'icon': faShareNodes
+            name: 'share',
+            icon: faShareNodes,
+            disabled: true
         },{
-            'name': 'archive',
-            'icon': faBoxArchive
+            name: 'archive',
+            icon: faBoxArchive
         },{
-            'name': 'delete',
-            'icon': faTrash
+            name: 'delete',
+            icon: faTrash
         }], [])
 
     // display buttons
     const renderButtons = useMemo(() => 
         buttons.map((element, index) =>
         <button
+            disabled={element?.disabled}
             to={element.name}
             className='note-button'
             key={index}
@@ -157,16 +159,45 @@ function Note() {
                 <div
                     className='note-header'
                 >
-                    <Link
-                        className='back-notes'
-                        to='../notes'
+                    <div
+                        className='newnote-top'
                     >
-                        <FontAwesomeIcon
-                            className='title-arrow'
-                            icon={faArrowUpSolid}
-                        />
-                        {t('Back to notes')}
-                    </Link>
+                        <Link
+                            className='back-notes'
+                            to='../notes'
+                        >
+                            <FontAwesomeIcon
+                                className='title-arrow'
+                                icon={faArrowUpSolid}
+                            />
+                            {t('Back to notes')}
+                        </Link>
+                        <SlideLeft
+                            visibility={error}
+                        >
+                            <FontAwesomeIcon
+                                className='newnote-loading-error'
+                                icon={faTriangleExclamation}
+                                tabIndex='0'
+                            />
+                        </SlideLeft>
+                        <SlideLeft
+                            visibility={loading}
+                        >
+                            <FontAwesomeIcon
+                                className='newnote-loading-icon'
+                                icon={faSpinner}
+                            />
+                        </SlideLeft>
+                        <SlideLeft
+                            visibility={offlineMode}
+                        >
+                            <FontAwesomeIcon
+                                className='newnote-offline-icon'
+                                icon={faPlane}
+                            />
+                        </SlideLeft>
+                    </div>
                     <div
                         className='note-button-group'
                     >
@@ -174,11 +205,12 @@ function Note() {
                     </div>
                 </div>
                 {/* NOTE */}
-                <SlideDown
-                    visibility={!loading}
+                
+                <div
+                    className='note-info'
                 >
-                    <div
-                        className='note-info'
+                    <SlideDown
+                        visibility={!loading}
                     >
                         <div
                             className='note-info-title'
@@ -214,6 +246,7 @@ function Note() {
                                     <Link
                                         to='/notes'
                                         className='note-info-category'
+                                        style={{'--cat-color': noteInfo.category?.color}}
                                         state={{
                                             sort: 'category',
                                             value: noteInfo.category?.name
@@ -243,9 +276,8 @@ function Note() {
                                 {noteInfo.content}
                             </div>
                         }
-                        
-                    </div>
-                </SlideDown>
+                    </SlideDown>
+                </div>
                 {/* SHARE WINDOW */}
                 {act ? <Share id={location.state}/> : null}
                 {/* CLARIFICATION WINDOWS */}

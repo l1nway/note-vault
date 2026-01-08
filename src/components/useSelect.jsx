@@ -1,20 +1,14 @@
-import {useRef} from 'react'
+import {useRef, useCallback, useMemo} from 'react'
 
-function useSelect({
-    disabled,
-    isOpen,
-    setIsOpen
-}) {
+function useSelect({disabled, isOpen, setIsOpen}) {
     const justFocused = useRef(false)
 
-    const handleBlur = (e) => {
-        if (e.currentTarget.contains(e.relatedTarget)) {
-            return
-        }
+    const handleBlur = useCallback((e) => {
+        if (e.currentTarget.contains(e.relatedTarget)) return
         setIsOpen(false)
-    }
+    }, [setIsOpen])
 
-    const handleFocus = () => {
+    const handleFocus = useCallback(() => {
         if (disabled) return
 
         if (!isOpen) {
@@ -25,28 +19,24 @@ function useSelect({
                 justFocused.current = false
             }, 200)
         }
-    }
+    }, [disabled, isOpen, setIsOpen])
 
-    const handleToggle = (e) => {
+    const handleToggle = useCallback((e) => {
         if (disabled) return
         if (e.target.closest('.cancel-select')) return
         if (justFocused.current) return
 
-        setIsOpen(prev => !prev)
-    }
+        setIsOpen()
+    }, [disabled, setIsOpen])
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = useCallback((e) => {
         if (e.key == 'Escape') {
             setIsOpen(false)
         }
-    }
+    }, [setIsOpen])
 
-    return {
-        handleBlur,
-        handleFocus,
-        handleToggle,
-        handleKeyDown
-    }
+    return useMemo(() => ({handleBlur, handleFocus, handleToggle, handleKeyDown}),
+    [handleBlur, handleFocus, handleToggle, handleKeyDown])
 }
 
 export default useSelect

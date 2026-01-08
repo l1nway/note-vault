@@ -1,18 +1,31 @@
 import {useState, useRef, useEffect, useMemo} from 'react'
 import {useLocation, useNavigate} from 'react-router'
+import {useShallow} from 'zustand/react/shallow'
 import Cookies from 'js-cookie'
 
 import {apiStore, appStore} from '../store'
 
 import useApi from './useApi'
+import {shake} from '../components/shake'
 
 function NoteEditor() {
-
     const location = useLocation()
     const navigate = useNavigate()
-    const {online} = apiStore()
+    const online = apiStore(state => state.online)
     
-    const {offlineMode, setOfflineMode, offlineCategories, offlineTags, setNotes, addOfflineActions, notes, setIsSyncing, categories, setCategories, tags, setTags} = appStore()
+    const {offlineMode, setOfflineMode, offlineCategories, offlineTags, setNotes, addOfflineActions, notes, setIsSyncing, categories, setCategories, setTags} = appStore(useShallow((state) => ({
+        offlineMode: state.offlineMode,
+        setOfflineMode: state.setOfflineMode,
+        offlineCategories: state.offlineCategories,
+        offlineTags: state.offlineTags,
+        setNotes: state.setNotes,
+        addOfflineActions: state.addOfflineActions,
+        notes: state.notes,
+        setIsSyncing: state.setIsSyncing,
+        categories: state.categories,
+        setCategories: state.setCategories,
+        setTags: state.setTags,
+    })))
 
     const token = [
             localStorage.getItem('token'),
@@ -26,7 +39,7 @@ function NoteEditor() {
     const {createNote, getNote, editNote, getTags, getCategories} = useApi(token)
     
     const catsDisabled = useMemo(
-        () => (categories?.length ?? 0) === 0,
+        () => (categories?.length ?? 0) == 0,
         [categories]
     )
 
@@ -38,7 +51,7 @@ function NoteEditor() {
         if (offlineMode || !online) {
             const tempId = Date.now()
             // sync and offline flags for UI, syncAction -- for offline synchronization
-            setNotes(notes => [...notes, {
+            setNotes(notes => [{
                     ...noteData,
                     id: tempId,
                     tempId,
@@ -46,7 +59,7 @@ function NoteEditor() {
                     syncing: false,
                     syncAction: 'create',
                     created_at: new Date().toISOString(),
-            }])
+            }, ...notes])
             // adding a queue to offline synchronization
             addOfflineActions({
                 type: 'create',
@@ -65,14 +78,14 @@ function NoteEditor() {
                 // flagging that saving is occurring
                 setSaving(true)
                 // optimistic note creation
-                setNotes(notes => [...notes, {
-                    ...noteData,
-                    id: tempId,
-                    tempId,
-                    syncing: true,
-                    syncAction: 'create',
-                    created_at: new Date().toISOString(),
-                }])
+                // setNotes(notes => [{
+                //     ...noteData,
+                //     id: tempId,
+                //     tempId,
+                //     syncing: true,
+                //     syncAction: 'create',
+                //     created_at: new Date().toISOString(),
+                // }, ...notes])
 
                 // server responds successfully -- the synchronization flag is removed
                 const serverNote = await createNote(noteData)
@@ -96,14 +109,20 @@ function NoteEditor() {
                 // server responds with an error -- an error flag is set
                 setNotes(prev =>
                     prev.map(note =>
-                        note.tempId === tempId
+                        note.tempId == tempId
                         ? {
                             ...note,
                             syncing: false,
                             error: true,
                             }
                         : note
-                ))  
+                ))
+                setErrors(prev => ({
+                    ...prev,
+                    input: true,
+                    inputMessage: error.message
+                }))
+                shake(inputRef.current)
             } finally {
                 setSaving(false)
         }}
@@ -159,10 +178,11 @@ function NoteEditor() {
             } catch (error) {
                 setErrors(prev => ({
                     ...prev,
-                    global: true,
-                    globalMessage: error
+                    input: true,
+                    inputMessage: error.message
                 }))
                 setFlags(location.state, {...noteData, saving: false, error: true})
+                shake(inputRef.current)
             } finally {
                 setSaving(false)
                 setFlags(location.state, {...noteData, saving: false, error: false})
@@ -197,11 +217,11 @@ function NoteEditor() {
             const tags = await getTags()
             setTags(tags)
             setNote(prev => ({...prev, tags}))
-            setVisibility(v => ({...v, tags: true}));
-            (tags?.length ?? 0 === 0) &&
-                setErrors(prev => ({
-                    ...prev,
-                    tagsMessage: 'No tags created'
+            setVisibility(v => ({...v, tags: true}))
+            setErrors(prev => ({
+            ...prev,
+                tags: false,
+                tagsMessage: tags?.length == 0 ? 'No tags created' : null
             }))
         } catch {
             setErrors(prev => ({
@@ -220,10 +240,18 @@ function NoteEditor() {
                 categories,
                 category: placeholder
             }))
+            setErrors(prev => ({
+                ...prev,
+                categories: false
+            }))
         } catch {
             setErrors(prev => ({
                 ...prev,
                 categories: true
+            }))
+            setNote(prev => ({
+            ...prev,
+                category: {name: 'Error loading categories'}
             }))
     }}
     
@@ -235,9 +263,11 @@ function NoteEditor() {
 
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [textareaFocus, setTextareaFocus] = useState(false)
 
     const [errors, setErrors] = useState({
         input: false,
+        inputMessage: 'Field cannot be empty',
         global: false,
         globalMessage: false,
         categories: false,
@@ -355,10 +385,10 @@ function NoteEditor() {
                 global: false,
                 categories: false,
                 tags: false,
-                tagsMessage: 'No tags created'
+                tagsMessage: 'Loading tags'
             }))
 
-        setOfflineMode(false)
+        setOfflineMode?.(false)
         
         if (token) {
             loadGroups()
@@ -476,13 +506,10 @@ function NoteEditor() {
 
     return {
         state: {
-            loading, errors, saving,
-            note, visibility
+            loading, errors, saving, note, visibility, textareaFocus
         },
         actions: {
-            setErrors,
-            newNote, modifyNote, clearInputs, selectTag, navigate, markdownToggle, loadTags, 
-            setLoading, loadCats, retryLoad, setNote, setVisibility
+            setErrors, newNote, modifyNote, clearInputs, selectTag, navigate, markdownToggle, loadTags, setLoading, loadCats, retryLoad, setNote, setVisibility, setTextareaFocus
         },
         refs: {
             inputRef, selectRef, tagRef, markdownRef

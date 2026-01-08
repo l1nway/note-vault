@@ -1,8 +1,10 @@
 import './groups.css'
 
 import {useMemo} from 'react'
+import {useShallow} from 'zustand/react/shallow'
 import ContentLoader from 'react-content-loader'
 import {useTranslation} from 'react-i18next'
+import {motion, AnimatePresence} from 'framer-motion'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faPlane, faTableCells as faTableCellsSolid, faList as faListSolid, faFloppyDisk, faTriangleExclamation, faRotateRight, faTrashCan, faSignal} from '@fortawesome/free-solid-svg-icons'
@@ -20,10 +22,23 @@ function Groups() {
     const {t} = useTranslation()
     const online = apiStore(state => state.online)
 
-    const {offlineMode, setOfflineMode, tags, categories} = appStore()
-    const {action, loadingError, loadingErrorMessage, retryFunction} = clarifyStore()
+    const {offlineMode, setOfflineMode, tags, categories} = appStore(
+        useShallow((state) => ({
+            offlineMode: state.offlineMode,
+            setOfflineMode: state.setOfflineMode,
+            tags: state.tags,
+            categories: state.categories,
+    })))
 
-    const {path, loading, catsView, setCatsView, listView, elementID, setElementID, color, setColor, name, setName, openAnim, clarifyRef, gridRef, listRef, getGroups} = groupsLogic()
+    const {action, loadingError, loadingErrorMessage, retryFunction} = clarifyStore(
+        useShallow((state) => ({
+            action: state.action,
+            loadingError: state.loadingError,
+            loadingErrorMessage: state.loadingErrorMessage,
+            retryFunction: state.retryFunction,
+    })))
+
+    const {path, loading, catsView, setCatsView, listView, elementID, setElementID, color, setColor, name, setName, openAnim, clarifyRef, gridRef, listRef} = groupsLogic()
 
     const items = useMemo(
         () => (path == 'tags' ? tags : categories),
@@ -40,9 +55,16 @@ function Groups() {
                 setName={setName}
                 setColor={setColor}
                 listView={listView}
+                catsView={catsView}
+                setCatsView={setCatsView}
+                retryFunction={retryFunction}
             />
         )
-    }, [items, openAnim, setElementID, setName, setColor])
+    }, [items, openAnim, listView])
+
+    const saving = useMemo(() => items?.some(item => item?.saving), [items])
+
+    const error = useMemo(() => items?.some(item => item?.error), [items])
 
     return(
         <div
@@ -61,7 +83,7 @@ function Groups() {
                         {t(path)}
                     </h1>
                     <SlideLeft
-                        visibility={items.some(item => item?.saving == true)}
+                        visibility={saving}
                     >
                         <FontAwesomeIcon
                             className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
@@ -69,7 +91,7 @@ function Groups() {
                         />
                     </SlideLeft>
                     <SlideLeft
-                        visibility={loadingError || items.some(item => item?.error == true)}
+                        visibility={loadingError || error}
                     >
                         <FontAwesomeIcon
                             className='loading-error-icon'
@@ -131,24 +153,6 @@ function Groups() {
                 </div>
             </div>
                 <SlideDown
-                    visibility={listView}
-                >
-                    <div
-                        className='groups-table'
-                    >
-                        <p
-                            className='tab-element'
-                        >
-                            {t('title')}
-                        </p>
-                        <p
-                            className='tab-element'
-                        >
-                            {t('archive & delete')}
-                        </p>
-                    </div>
-                </SlideDown>
-                <SlideDown
                     visibility={loading}
                 >
                     <div
@@ -182,11 +186,14 @@ function Groups() {
                 <SlideDown
                     visibility={!loading}
                 >
-                    <div
+                    <motion.div
+                        layout='position'
                         className='groups-list'
                     >
-                        {renderGroups}
-                    </div>
+                        <AnimatePresence>
+                            {renderGroups}
+                        </AnimatePresence>
+                    </motion.div>
                 </SlideDown>
                 <SlideDown
                     visibility={loadingError}
@@ -198,7 +205,6 @@ function Groups() {
                         }}
                         // onClick={() => {
                         //     if (online) {
-                        //         getGroups()
                         //         setLoading(true)
                         //         setLoadingError(false)
                         // }}}
@@ -269,7 +275,6 @@ function Groups() {
                     setColor={setColor}
                     name={name}
                     setName={setName}
-                    getGroups={getGroups}
                 />
             : null}
         </div>

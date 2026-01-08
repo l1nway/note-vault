@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {useTranslation} from 'react-i18next'
 import {useLocation} from 'react-router'
-import {useState, useMemo} from 'react'
+import {useState, useMemo, useCallback} from 'react'
 
 import {faArrowUp as faArrowUpSolid, faFloppyDisk, faXmark, faTriangleExclamation, faSpinner, faRotateRight, faSignal, faPlane, faPlaneCircleCheck} from '@fortawesome/free-solid-svg-icons'
 
@@ -26,7 +26,7 @@ function NewNote() {
     const {t} = useTranslation()
 
     const {state, actions, refs} = NoteEditor()
-    const {loading, saving, errors, note} = state
+    const {loading, saving, errors, note, textareaFocus} = state
     const {navigate, clearInputs, newNote, modifyNote, markdownToggle, retryLoad, setVisibility, setErrors} = actions
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
@@ -35,7 +35,8 @@ function NewNote() {
             shake(inputRef.current)
             setErrors(prev => ({
                 ...prev,
-                input: true
+                input: true,
+                inputMessage: 'Field cannot be empty'
             }))
             return
         }
@@ -52,7 +53,10 @@ function NewNote() {
 
     const hotkeys = useMemo(() => [{
         key: 'mod+z, esc',
-        trigger: () => navigate(-1)
+        trigger: () => {
+            if (textareaFocus) return
+            navigate(-1)
+        }
     },{
         key: 'mod+s, alt+s, shift+s',
         trigger: () => saveButton()
@@ -71,6 +75,7 @@ function NewNote() {
     },{
         key: 'mod+m, alt+m, shift+m',
         trigger: () => {
+            if (textareaFocus) return
             markdownRef.current?.focus()
             markdownToggle()
         }
@@ -84,9 +89,13 @@ function NewNote() {
             onTrigger={element.trigger}
             enabled={element.enabled}
         />
-        ), 
-        [hotkeys]
-    )
+    ), [hotkeys])
+
+    const errorStatus =
+        errors.input ||
+        errors.global ||
+        errors.categories ||
+        errors.tags
 
     return (
         <div
@@ -113,7 +122,7 @@ function NewNote() {
                         {t('Back to notes')}
                     </button>
                     <SlideLeft
-                        visibility={errors.global}
+                        visibility={errorStatus}
                     >
                         <FontAwesomeIcon
                             className='newnote-loading-error'
@@ -164,8 +173,8 @@ function NewNote() {
                         {t('cancel')}
                     </button>
                     <button
-                        className={`newnote-save-button ${note.name == '' && '--unavailable'}`}
-                        tabIndex={note.name == '' && -1}
+                        className={`newnote-save-button ${(note.name == '' || errors.input) && '--unavailable'}`}
+                        tabIndex={(note.name == '' || errors.input) && -1}
                         onClick={saveButton}
                         disabled={errors.global}
                     >
@@ -186,7 +195,7 @@ function NewNote() {
                     onClick={() => {online ? retryLoad() : setOfflineMode(true)}}
                 >
                     <span>
-                        {t('Error')} {location.state == null ? 'loading' : 'saving'} {t('note')}
+                        {t('Error')} {location.state == null ? 'saving' : 'loading'} {t('note')}
                     </span>
                     <span>
                         {t(errors.globalMessage)}

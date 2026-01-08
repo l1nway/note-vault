@@ -1,6 +1,6 @@
 import './App.css'
 
-import {useState, createRef, useRef, useEffect} from 'react'
+import {useState, createRef, useRef, useEffect, useMemo} from 'react'
 import {Routes, Route, useLocation} from 'react-router'
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
 import Cookies from 'js-cookie'
@@ -12,28 +12,15 @@ import {apiStore, appStore, pendingStore} from './store'
 import useOfflineSync from './components/useOfflineSync'
 
 function App() {
+  const online = apiStore(state => state.online)
+  const setOfflineMode = appStore(state => state.setOfflineMode)
 
-  const {online} = apiStore()
-  const {offlineActions, setOfflineMode} = appStore()
-  const {pendings} = pendingStore()
-
-  const token = [
-      localStorage.getItem('token'),
-      Cookies.get('token')
-  ].find(
-          token => token
-      &&
-          token !== 'null'
-  )
+  const token = useMemo(() => [localStorage.getItem('token'), Cookies.get('token')].find(t => t && t !== 'null'), [])
   useOfflineSync(token)
 
   useEffect(() => {
-    if (online) {
-      setOfflineMode(false)
-    }
-    if (!online) {
-      Cookies.get('offline') == 'true' && setOfflineMode(true)
-    }}, [online])
+    setOfflineMode?.(!online && Cookies.get('offline') == 'true')
+  }, [online, setOfflineMode])
 
   // тестирую возможность менять расположение бара
   const [topBar, setTopBar] = useState(true)
@@ -49,14 +36,16 @@ function App() {
       nodeRefs.current[locationKey] = createRef()
   }
 
-  const nodeRef = nodeRefs.current[locationKey]
+  const nodeRef = useMemo(() => {
+    if (!nodeRefs.current[location.pathname]) {
+      nodeRefs.current[location.pathname] = createRef()
+    }
+    return nodeRefs.current[location.pathname]
+  }, [location.pathname])
   
-  const topLevel = ['/login', '/register'].includes(location.pathname)
-    ? location.pathname
-    : 'main'
-
-  console.log('offline actions', offlineActions)
-  console.log('pendings', pendings)
+  const topLevel = useMemo(() => (
+    ['/login', '/register'].includes(location.pathname) ? location.pathname : 'main'
+  ), [location.pathname])
 
   // — Vite
   // — Zustand

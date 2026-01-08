@@ -34,6 +34,10 @@
     box-sizing: border-box;
   }
 
+  a {
+    outline: none;
+  }
+
   html {
     height: 100%;
   }
@@ -55,9 +59,37 @@
     display: none;
   }
 
+:root {
+
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--blck-bc);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background-color 300ms ease, opacity 300ms ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--blck-bc-hvr);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--blck-bc-hvr) var(--blck-bc);
+}
+
   .app-main {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     display: flex;
     height: 100%;
     --screen: 'desktop';

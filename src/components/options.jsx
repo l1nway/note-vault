@@ -1,22 +1,69 @@
 import {CSSTransition} from 'react-transition-group'
-import {useRef} from 'react'
+import {useRef, useState, useEffect, useCallback, memo} from 'react'
 
-export default function Options({visibility, children, duration = 300, selectRef}) {
+function Options({visibility, children, duration = 300, selectRef}) {
   
   const nodeRef = useRef(null)
 
-  const selectHeight = selectRef?.current?.offsetHeight
+  const [selectHeight, setSelectHeight] = useState(0)
 
-  const setInitialStyles = (element) => {
-        element.style.position = 'absolute'
-        element.style.top = `${selectHeight}px`
-        element.style.left = '0'
-        element.style.width = '100%'
-        // element.style.padding = '0.5vw 1vw'
-        element.style.borderRadius = '1vw'
-        element.style.overflow = 'hidden'
-        element.style.zIndex = '1'
+  useEffect(() => {
+    if (selectRef?.current) {
+      setSelectHeight(selectRef.current.offsetHeight)
     }
+  }, [selectRef])
+
+  const setInitialStyles = useCallback((element) => {
+    element.style.position = 'absolute'
+    element.style.top = `${selectHeight}px`
+    element.style.left = '0'
+    element.style.width = '100%'
+    // element.style.padding = '0.5vw 1vw'
+    element.style.borderRadius = '1vw'
+    element.style.overflow = 'hidden'
+    element.style.zIndex = '1'
+  }, [selectHeight])
+
+  const handleEnter = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    setInitialStyles(el)
+    el.style.height = '0px'
+    el.style.transition = ''
+  }, [setInitialStyles])
+
+  const handleEntering = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    el.style.transition = `height ${duration}ms ease`
+    el.style.height = `${el.scrollHeight}px`
+  }, [duration])
+
+  const handleEntered = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.transition = ''
+  }, [])
+
+  const handleExit = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    el.style.height = `${el.scrollHeight}px`
+    el.style.transition = `height ${duration}ms ease`
+  }, [duration])
+
+  const handleExiting = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    el.style.height = '0px'
+  }, [])
+
+  const handleExited = useCallback(() => {
+    const el = nodeRef.current
+    if (!el) return
+    el.style.transition = ''
+  }, [])
 
   return (
     <CSSTransition
@@ -25,29 +72,12 @@ export default function Options({visibility, children, duration = 300, selectRef
       classNames='options'
       unmountOnExit
       nodeRef={nodeRef}
-      onEnter={() => {
-        setInitialStyles(nodeRef.current)
-        nodeRef.current.style.height = '0px'
-        nodeRef.current.style.transition = ''
-      }}
-      onEntering={() => {
-        nodeRef.current.style.transition = `height ${duration}ms ease`
-        nodeRef.current.style.height = `${nodeRef.current.scrollHeight}px`
-      }}
-      onEntered={() => {
-        nodeRef.current.style.height = 'auto'
-        nodeRef.current.style.transition = ''
-      }}
-      onExit={() => {
-        nodeRef.current.style.height = `${nodeRef.current.scrollHeight}px`
-        nodeRef.current.style.transition = `height ${duration}ms ease`
-      }}
-      onExiting={() => {
-        nodeRef.current.style.height = '0px'
-      }}
-      onExited={() => {
-        nodeRef.current.style.transition = ''
-      }}
+      onEnter={handleEnter}
+      onEntering={handleEntering}
+      onEntered={handleEntered}
+      onExit={handleExit}
+      onExiting={handleExiting}
+      onExited={handleExited}
     >
       <div
         ref={nodeRef}
@@ -57,3 +87,10 @@ export default function Options({visibility, children, duration = 300, selectRef
     </CSSTransition>
   )
 }
+
+export default memo(Options, (prev, next) => {
+  return prev.visibility === next.visibility &&
+         prev.duration === next.duration &&
+         prev.selectRef === next.selectRef &&
+         prev.children === next.children
+})

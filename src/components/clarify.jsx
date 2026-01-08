@@ -1,6 +1,6 @@
 import './clarify.css'
 
-import {forwardRef, useImperativeHandle, useState, useMemo} from 'react'
+import {forwardRef, useImperativeHandle, useState, useMemo, useCallback} from 'react'
 import {useTranslation} from 'react-i18next'
 
 import ClarifyView from './clarifyView'
@@ -24,6 +24,10 @@ import useClarifyLogic from './useClarifyLogic'
             color: '#1E90FF'
         }])
 
+        const selectColor = useCallback((value) => {
+            props.color == value ? props.setColor(null) : props.setColor(value)
+        }, [props.color, props.setColor])
+
         // displays a list of colors
         const renderColors = useMemo(() => 
             colors.map((value, index) => 
@@ -39,11 +43,11 @@ import useClarifyLogic from './useClarifyLogic'
                         type='radio'
                         name='color'
                         checked={props.color == value}
-                        onClick={() => props.color == value ? props.setColor(null) : props.setColor(value)}
-                        onChange={() => props.color == value ? props.setColor(null) : props.setColor(value)}
+                        onClick={() => selectColor(value)}
+                        onChange={() => selectColor(value)}
                     />
                 </label>
-        ),[colors, loadingError, props.color, props.setColor])
+        ), [colors, loadingError, props.color, props.setColor])
         // 
 
         // change() function from <Clarify/>; call is available if an error occurred while saving, to try again

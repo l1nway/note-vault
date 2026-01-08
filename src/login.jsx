@@ -269,12 +269,13 @@ function Login() {
                                             {t('remember me')}
                                         </span>
                                     </label>
-                                        <label
-                                            tabIndex='0'
-                                            className='login-forgot'
-                                        >
-                                            {t('forgot password')}?
-                                        </label>
+                                    <label
+                                        tabIndex='-1'
+                                        className='login-forgot'
+                                        style={{display: 'none'}}
+                                    >
+                                        {t('forgot password')}?
+                                    </label>
                                 </div>
                             : null}
                             
@@ -291,6 +292,7 @@ function Login() {
                             </button>
                             <div
                                 className='login-alternative'
+                                style={{display: 'none'}}
                             >
                                 <span
                                     className='alternative-text'
@@ -302,6 +304,7 @@ function Login() {
                             <button
                                 type='button'
                                 className='login-google'
+                                style={{display: 'none'}}
                             >
                                 <FontAwesomeIcon
                                     className='google-icon'
@@ -317,6 +320,7 @@ function Login() {
                             <button
                                 type='button'
                                 className='login-apple'
+                                style={{display: 'none'}}
                             >
                                 <FontAwesomeIcon
                                     className='apple-icon'
@@ -333,6 +337,7 @@ function Login() {
                                 className='create-account'
                                 onClick={() => setGuestMode(true)}
                                 to='/notes'
+                                style={{display: 'none'}}
                             >
                                 <p
                                     className='create-text'

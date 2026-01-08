@@ -147,13 +147,15 @@ function ProfileSettings() {
                         {t('Changed successfully')}
                     </div>
                 </SlideDown>
-        },{
-            title: 'Connected accounts',
-            class: 'settings-accounts',
-            action: setConnections,
-            visibility: connections,
-            component: <Connections/>
-        },{
+        },
+        // {
+        //     title: 'Connected accounts',
+        //     class: 'settings-accounts',
+        //     action: setConnections,
+        //     visibility: connections,
+        //     component: <Connections/>
+        // },
+        {
             title: 'Log-out',
             class: 'logout',
             action: setLogout,
@@ -182,11 +184,12 @@ function ProfileSettings() {
                         {t('Confirm logout')}
                     </button>
                 </div>
-        },{
-            title: 'Delete account',
-            class: 'settings-delete',
-            action: 'Delete'
         }
+        // ,{
+        //     title: 'Delete account',
+        //     class: 'settings-delete',
+        //     action: 'Delete'
+        // }
     ])
 
     // render account settings buttons

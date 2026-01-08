@@ -2,73 +2,43 @@ import {useState, useEffect, useRef, useMemo} from 'react'
 import {useLocation} from 'react-router'
 import Cookies from 'js-cookie'
 
-import {clarifyStore, appStore, apiStore} from '../store'
+import {clarifyStore, apiStore, appStore} from '../store'
+import getTrash from './getTrash'
 
 function trashLogic() {
-    const online = apiStore(state => state.online)
+  const online = apiStore(state => state.online)
+  
+  const token = useMemo(() => [localStorage.getItem('token'), Cookies.get('token')].find(t => t && t !== 'null'), [])
+
+  const {trash, archive} = appStore()
 
   // used to determine whether the component will perform the login or registration function
-    const location = useLocation()
-    const path = useMemo(
-        () => location.pathname.slice(1),
-    [location.pathname])
+  const location = useLocation()
+  const path = useMemo(
+    () => location.pathname.slice(1),
+  [location.pathname])
 
-    const {
-      // action being performed and its purpose
-      setAction,
-      // error text returned by the server
-      // <Clarify/> window visibility
-      setVisibility,
-      // animation status (used to block unwanted player actions during an animation that could break the animation)
-      animating,
-      setAnimating,
-      // status and it change of data download from the server in the <Clarify/> window
-      // status of the moment of saving information
-      setErrorAction
-    } = clarifyStore()
-
-  const {setArchive, setTrash, setOfflineMode} = appStore()
+  const {
+    // action being performed and its purpose
+    setAction,
+    // <Clarify/> window visibility
+    setVisibility,
+    // animation status (used to block unwanted player actions during an animation that could break the animation)
+    animating, setAnimating,
+    setErrorAction
+  } = clarifyStore()
 
   const [deletedLoading, setDeletedLoading] = useState(false)
   const [archivedLoading, setArchivedLoading] = useState(false)
 
-  // 
-  const token = [
-      localStorage.getItem('token'),
-      Cookies.get('token')
-  ].find(
-      token => token
-  &&
-      token !== 'null'
-  )
-
-  const trashUrl = useMemo(
-      () => `http://api.notevault.pro/api/v1/notes?${path == 'trash' ? 'deleted' : path}=true`,
-  [path])
-
-  const getTrash = () => {
-    path == 'trash' ? setDeletedLoading (true) : setArchivedLoading(true)
-    fetch(trashUrl, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json',
-            authorization: 
-                `Bearer ${token}`
-        }
-      })
-    .then(res => res.json())
-    .then(resData => {
-      // if (path == 'trash') {
-      //   setTrash(resData.data)
-      //   setDeletedLoading (false)
-      // } else
-      //   setArchive(resData.data)
-      //   setArchivedLoading(false)
-    })
-  }
-
   // triggers the function execution on the first load
-  useEffect(() => {if (online) {getTrash()}}, [])
+  useEffect(() => {if (online) {
+    if (path == 'trash') { 
+      trash?.length == 0 && setDeletedLoading(true)
+    } else 
+      archive?.length == 0 && setArchivedLoading(true)
+      token && getTrash(path, setDeletedLoading, setArchivedLoading)
+  }}, [])
 
   useEffect(() => {
     if (Cookies.get('offline') != 'true' && !online) {
@@ -86,7 +56,7 @@ function trashLogic() {
   const [catsView, setCatsView] = useState('grid')
   const listView = catsView == 'list'
 
-  // 
+  // пока что не используется
   const [selectedNotes, setSelectedNotes] = useState([])
 
   const selectNote = (note) => {
@@ -99,10 +69,7 @@ function trashLogic() {
     )
   }
 
-  // array with all tags
-
   const [elementID, setElementID] = useState('')
-
   // 
 
   const openAnim = (action) => {

@@ -1,9 +1,13 @@
-import {useEffect} from 'react'
+import {useEffect, useMemo, useCallback} from 'react'
 import {useLocation, useNavigate} from 'react-router'
+import {useShallow} from 'zustand/react/shallow'
 import Cookies from 'js-cookie'
 import {clarifyStore, appStore} from '../store'
 
 import clarifyApi from './clarifyApi'
+import getTrash from '../trash/getTrash'
+import getNotes from '../notes/getNotes'
+import getGroups from '../groups/getGroups'
 
 const useClarifyLogic = (props) => {
 
@@ -13,50 +17,68 @@ const useClarifyLogic = (props) => {
     const location = useLocation()
 
     // getting a user token from local storage or cookies
-    const token = [
+    const token = useMemo(() => [
             localStorage.getItem('token'),
             Cookies.get('token')
         ].find(
                 token => token
             &&
                 token !== 'null'
-        )
+    ), [])
     
     // getting all actions and states
-    const {
+    const {action, setAction, loadingError, setLoadingError, visibility, setVisibility, animating, setAnimating, clarifyLoading, setClarifyLoading, setRetryFunction, currentElementId} = clarifyStore(
+    useShallow((state) => ({
         // user actions; false unmounts the component
-        action, setAction,
+        action: state.action,
+        setAction: state.setAction,
         // error or success status of the first notes load
-        loadingError, setLoadingError,
+        loadingError: state.loadingError,
+        setLoadingError: state.setLoadingError,
         // clarify window visibility state when it is mounted
-        visibility, setVisibility,
+        visibility: state.visibility,
+        setVisibility: state.setVisibility,
         // clarify window animation state
-        animating, setAnimating,
+        animating: state.animating,
+        setAnimating: state.setAnimating,
         // clarify window loading state
-        clarifyLoading, setClarifyLoading,
+        clarifyLoading: state.clarifyLoading,
+        setClarifyLoading: state.setClarifyLoading,
         // saving a user's action in case it needs to be repeated
-        setRetryFunction,
-        currentElementId
-    } = clarifyStore()
+        setRetryFunction: state.setRetryFunction,
+        currentElementId: state.currentElementId,
+    })))
 
-    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing, setTrash, setArchive} = appStore()
+    const {online, offlineMode, addOfflineActions, setNotes, setCategories, setTags, setIsSyncing, setTrash, setArchive} = appStore(
+        useShallow((state) => ({
+            online: state.online,
+            offlineMode: state.offlineMode,
+            addOfflineActions: state.addOfflineActions,
+            setNotes: state.setNotes,
+            setCategories: state.setCategories,
+            setTags: state.setTags,
+            setIsSyncing: state.setIsSyncing,
+            setTrash: state.setTrash,
+            setArchive: state.setArchive,
+    })))
 
     // used to determine the need for a redirect; on the page of a specific note after deleting
-    const renavigate = location.pathname == `/notes/note/${props.id}`
+    const renavigate = useMemo(() => location.pathname == `/notes/note/${props.id}`, [location.pathname, props.id])
 
     // removes slash at the beginning
-    const pathSegments = location.pathname.slice(1).split('/')
+    const pathSegments = useMemo(() => location.pathname.slice(1).split('/'), [location.pathname])
 
     // converting the address notes/note/${id} to notes — suitable for the server
-    const path = (pathSegments[0] == 'notes' && pathSegments[1] == 'note')
+    const path = useMemo(() => (pathSegments[0] == 'notes' && pathSegments[1] == 'note')
         ? 'notes'
         : pathSegments[0]
+    , [pathSegments])
 
     // small filter that identifies the desired data object from storage according to the selected action and the current page
-    const effectivePath = (path == 'archived' || path == 'trash' || path.startsWith('notes/note')) ? 'notes' : path
+    const effectivePath = useMemo(() => (path == 'archived' || path == 'trash' || path.startsWith('notes/note')) ? 'notes' : path, [path])
     
     // disappearing clarify window with animation and unmounting
-    const closeAnim = () => {
+    const closeAnim = useCallback(() => {
         if (animating == true) {
             return false
         }
@@ -68,10 +90,10 @@ const useClarifyLogic = (props) => {
         setTimeout(() => {
             setAnimating(false)
         }, 300)
-    }
+    }, [animating, setAction, setAnimating, setVisibility])
 
     // getting information (to fill inputs in the edit action)
-    const get = () => {
+    const get = useCallback(() => {
         if (action == 'new') {
             setClarifyLoading(false)
             return
@@ -101,22 +123,22 @@ const useClarifyLogic = (props) => {
                 props.setColor(resData.find(item => item.color == props.color)?.color || '')
             }
         })
-    }
+    }, [action, path, props.id, props.name, props.color, setClarifyLoading, setLoadingError, props.setName, props.setColor, token, closeAnim, visibility])
 
     // to get at the first render
     useEffect(() => online ? get() : setClarifyLoading(false), [])
 
     // determining which server request must be re-executed to update the list after the user's action
-    const refresh = {
-        notes: props.getNotes,
-        tags: props.getGroups,
-        categories: props.getGroups,
-        archived: props.getTrash,
-        trash: props.getTrash,
-    }
+    const refresh = useMemo(() => ({
+        notes: getNotes,
+        tags: () => getGroups('tags'),
+        categories: () => getGroups('categories'),
+        archived: () => getTrash('archived'),
+        trash: () => getTrash('trash')
+    }), [])
 
     // sending action results to the server (create new, edit existing, archive or delete)
-    const change = async (retryContext = null) => {
+    const change = useCallback(async (retryContext = null) => {
         const currentId = retryContext?.id || props.id
         const currentAction = retryContext?.action || action
         const currentPath = retryContext?.path || path
@@ -181,8 +203,24 @@ const useClarifyLogic = (props) => {
             syncing: false
         })
 
-        props?.setName('')
-        props?.setColor('')
+        if (requestError) return
+        switch (action) {
+            case 'delete':
+                refresh.trash
+                break
+            case 'archive':
+                refresh.archived
+                break
+            case 'restore':
+            case 'unarchive':
+                refresh.notes()
+                break
+        }
+
+        refresh[path]?.()
+
+        props?.setName?.('')
+        props?.setColor?.('')
 
         if (currentPath == 'archived' || currentPath == 'trash') {
             setNotes(prev => prev.map(item =>
@@ -194,15 +232,11 @@ const useClarifyLogic = (props) => {
                 } : item
             ))
         }
-    }}
+    }}, [action, path, props.id, props.name, props.color, renavigate, visibility, currentElementId, setCategories, setNotes, setTags, setTrash, setArchive, addOfflineActions, setIsSyncing, closeAnim, refresh, navigate])
 
     // saving in the interface, so-called optimistic update
-    const offlineChange = (retryContext = null) => {
+    const offlineChange = useCallback((retryContext = null) => {
         setRetryFunction(action)
-
-        const currentAction = retryContext?.action || action
-        const currentId = retryContext?.id || props.id
-        const currentPath = retryContext?.path || path
 
         // storage of server requests for list updates for each page
         const setterMap = {
@@ -210,7 +244,7 @@ const useClarifyLogic = (props) => {
             notes: setNotes,
             tags: setTags,
             trash: setTrash,
-            archive: setArchive
+            archived: setArchive
         }
 
         // matching by path
@@ -382,32 +416,13 @@ const useClarifyLogic = (props) => {
             
             closeAnim()
         }
-    }
+    }, [action, path, props.id, props.name, props.color, addOfflineActions, offlineMode, online, setIsSyncing, setCategories, setNotes, setTags, setTrash, setArchive, closeAnim, change])
 
-    return {
-        state: {
-            clarifyLoading,
-            loadingError,
-            visibility,
-            animating,
-            action
-        },
-        actions: {
-            get,
-            closeAnim,
-            setAction,
-            setAnimating,
-            offlineChange,
-            change,
-            setVisibility,
-            setLoadingError,
-            setClarifyLoading
-        },
-        pathData: {
-            effectivePath,
-            path
-        }
-    }
+    return useMemo(() => ({
+        state: {clarifyLoading, loadingError, visibility, animating, action},
+        actions: {get, closeAnim, setAction, setAnimating, offlineChange, change, setVisibility, setLoadingError, setClarifyLoading},
+        pathData: {effectivePath, path}
+    }), [clarifyLoading, loadingError, visibility, animating, action, get, closeAnim, setAction, setAnimating, offlineChange, change, setVisibility, setLoadingError, setClarifyLoading, effectivePath, path])
 }
 
 export default useClarifyLogic

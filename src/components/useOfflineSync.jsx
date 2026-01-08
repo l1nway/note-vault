@@ -5,6 +5,9 @@ import {appStore, pendingStore} from '../store'
 import useApi from '../notes/useApi'
 import clarifyApi from './clarifyApi'
 
+import getTrash from '../trash/getTrash'
+import getNotes from '../notes/getNotes'
+
 const useOfflineSync = () => {
     const {online, offlineActions, removeOfflineAction, setNotes, setCategories, setTags, setArchive, setTrash, isSyncing, setIsSyncing, updateOfflineActionId} = appStore()
 
@@ -275,13 +278,19 @@ const useOfflineSync = () => {
                     }
                 }
             }
+                if (actionsQueue.length) {
+                    getNotes('')
+                    getTrash('trash')
+                    getTrash('archived')
+                }
+
                 syncInProgress.current = false
                 setIsSyncing(false)
         }
 
         processPendings()
         sync()
-    },  [online, offlineActions.length, pendings.length])
+    },  [online, offlineActions?.length, pendings?.length])
 }
 
 export default useOfflineSync

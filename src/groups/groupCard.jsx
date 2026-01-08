@@ -1,36 +1,70 @@
 import './groups.css'
 
-import {useMemo} from 'react'
-import {useLocation, Link} from 'react-router'
+import React, {useCallback, useMemo} from 'react'
+import {useShallow} from 'zustand/react/shallow'
+import {useLocation, useNavigate} from 'react-router'
+import {motion} from 'framer-motion'
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faTowerBroadcast, faServer, faPenToSquare, faTrash as faTrashSolid, faTag, faFloppyDisk, faTriangleExclamation, faTrashCan, faTrashCanArrowUp} from '@fortawesome/free-solid-svg-icons'
 
 import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
-import groupsLogic from './groupsLogic'
 
 import {clarifyStore, pendingStore} from '../store'
 
-function GroupCard({element, openAnim, setElementID, setName, setColor, listView}) {
+function GroupCard({element, openAnim, setElementID, setName, setColor, listView, catsView, setCatsView, retryFunction}) {
     const {pathname} = useLocation()
     const path = pathname.slice(1)
+    const navigate = useNavigate()
 
-    const {animating, retryFunction} = clarifyStore()
-    const {undo, pendings} = pendingStore()
+    const {animating, setTag, setCategory} = clarifyStore(
+        useShallow(state => ({
+            animating: state.animating,
+            setTag: state.setTag,
+            setCategory: state.setCategory,
+    })))
+    const undo = pendingStore(state => state.undo)
+    const pendings = pendingStore(state => state.pendings)
     
-    const {catsView, setCatsView} = groupsLogic()
-    
-    const pending = useMemo(
-        () => pendings.find(p => p.id == element.id),
-        [pendings, element.id]
-    )
-
+    const pending = useMemo(() => pendings.find(p => p.id == element.id), [pendings, element.id])
     const isPending = Boolean(pending)
 
+    const edit = useCallback((e, element) => {
+        e.preventDefault()
+        if (animating == true) {
+            return false
+        }
+
+        openAnim('edit', element.id)
+        setElementID(element.id)
+        setColor(element.color)
+        setName(element.name)
+    })
+
+    const del = useCallback((e, element) => {
+        e.preventDefault()
+        if (animating == true) {
+            return false
+        }
+        
+        setElementID(element.id)
+        openAnim('delete', element.id)
+    })
+
+    const redirect = useCallback((e, element) => {
+        if (isPending) {
+            e.preventDefault()
+            undo(pending.pendingId)
+            return
+        }
+        navigate('/notes')
+        path == 'tags' ? setTag(element) : setCategory(element)
+    })
+
     return (
-        <Link
-            to='/notes'
+        <motion.div
+            tabIndex={0}
             className={`group-element ${isPending
                 ? '--disappearance'
                 : ''
@@ -40,12 +74,8 @@ function GroupCard({element, openAnim, setElementID, setName, setColor, listView
                 sort: path,
                 value: element
             }}
-            onClick={e => {
-                if (isPending) {
-                    e.preventDefault()
-                    undo(pending.pendingId)
-                }
-            }}
+            onClick={e => redirect(e, element)}
+            layout='position'
         >
             {/* input for css only */}
             <input
@@ -63,30 +93,12 @@ function GroupCard({element, openAnim, setElementID, setName, setColor, listView
                     <FontAwesomeIcon
                         className='button-archive'
                         icon={faPenToSquare}
-                        onClick={(e) => {
-                            e.preventDefault()
-                            if (animating == true) {
-                                return false
-                            }
-
-                            openAnim('edit', element.id)
-                            setElementID(element.id)
-                            setColor(element.color)
-                            setName(element.name)
-                        }}
+                        onClick={e => edit(e, element)}
                     />
                     <FontAwesomeIcon
                         className='button-delete'
                         icon={faTrashSolid}
-                        onClick={(e) => {
-                            e.preventDefault()
-                            if (animating == true) {
-                                return false
-                            }
-                            
-                            setElementID(element.id)
-                            openAnim('delete', element.id)
-                        }}
+                        onClick={(e) => del(e, element)}
                     />
                 </div>
             </SlideDown>
@@ -170,8 +182,8 @@ function GroupCard({element, openAnim, setElementID, setName, setColor, listView
                     {element.notes_count} notes
                 </div>
             </div>
-        </Link>
+        </motion.div>
     )
 }
 
-export default GroupCard
+export default React.memo(GroupCard)

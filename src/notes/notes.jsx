@@ -1,7 +1,8 @@
 import './notes.css'
 
 import {useState, useEffect, useRef, useCallback, useMemo} from 'react'
-import {Link, useLocation} from 'react-router'
+import {useShallow} from 'zustand/react/shallow'
+import {Link} from 'react-router'
 import {useTranslation} from 'react-i18next'
 
 import Cookies from 'js-cookie'
@@ -10,7 +11,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faPlane, faSpinner, faTrashCan, faTriangleExclamation, faMagnifyingGlass as faMagnifyingGlassSolid, faUserSlash, faArrowUp as faArrowUpSolid, faTableCells as faTableCellsSolid, faList as faListSolid, faXmark, faFloppyDisk} from '@fortawesome/free-solid-svg-icons'
 
 import NotesList from './notesList'
-import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import Options from '../components/options'
 import useSelect from '../components/useSelect'
@@ -18,194 +18,122 @@ import Hotkey from '../components/hotkey'
 
 import {apiStore, appStore, clarifyStore, notesViewStore} from '../store'
 
-// Managing notes page header
 function Notes() {
+    const {t} = useTranslation()
+    const token = useMemo(() => [localStorage.getItem('token'), Cookies.get('token')].find(t => t && t !== 'null'), [])
     // 
     const online = apiStore(state => state.online)
-    const {offlineMode, tags, setTags, notes, categories, setCategories} = appStore()
-    
-    const location = useLocation()
-    const path = location.pathname.slice(1)
 
-    const token = [
-            localStorage.getItem('token'),
-            Cookies.get('token')
-        ].find(
-                token => token
-            &&
-                token !== 'null'
-        )
+    const {offlineMode, notes, tags, categories, setTags, setCategories} = appStore(
+        useShallow(state => ({
+            offlineMode: state.offlineMode,
+            notes: state.notes,
+            tags: state.tags,
+            categories: state.categories,
+            setTags: state.setTags,
+            setCategories: state.setCategories
+    })))
 
+    const {notesError, setAction, setVisibility, animating, setAnimating, notesLoading, notesMessage, setClarifyLoading, retryFunction, setRetryFunction, tag, setTag, category, setCategory, search, setSearch} = clarifyStore(
+        useShallow(state => ({
+            notesError: state.notesError,
+            setAction: state.setAction,
+            setVisibility: state.setVisibility,
+            animating: state.animating,
+            setAnimating: state.setAnimating,
+            notesLoading: state.notesLoading,
+            notesMessage: state.notesMessage,
+            setClarifyLoading: state.setClarifyLoading,
+            retryFunction: state.retryFunction,
+            setRetryFunction: state.setRetryFunction,
+            tag: state.tag,
+            setTag: state.setTag,
+            category: state.category,
+            setCategory: state.setCategory,
+            search: state.search,
+            setSearch: state.setSearch
+    })))
+
+    const {notesView, setNotesView} = notesViewStore(
+        useShallow(state => ({
+            notesView: state.notesView,
+            setNotesView: state.setNotesView
+    })))
+
+    // refs for correctly setting focus on the checkbox imitation
+    const gridRef = useRef(null)
+    const listRef = useRef(null)
+    // ref is used to prevent a bug where focus is set on first load
+    const firstRender = useRef(true)
     const searchRef = useRef()
+    const categoryRef = useRef(null)
+    const tagRef = useRef(null)
+    const categoryHeadRef = useRef(null)
+    const tagHeadRef = useRef(null)
 
     const [searchFocus, setSearchFocus] = useState(false)
+    // selector open status
+    const [categoryStatus, setCategoryStatus] = useState(false)
+    const [tagStatus, setTagStatus] = useState(false)
 
     const focusSearch = useCallback(() => {
         searchRef.current?.focus()
     }, [])
 
-    const getTags = () => {
-        fetch(`http://api.notevault.pro/api/v1/tags`,
-            {
-                method: 'GET',
-                headers: {
-                    'content-type': 'application/json',
-                    authorization: 
-                        `Bearer ${token}`
-                }
-            })
-        .then(res => res.json())
-        .then(resData => (setTags(resData)))
-    }
-
-    const getCats = () => {
-        fetch(`http://api.notevault.pro/api/v1/categories`,
-            {
-                method: 'GET',
-                headers: {
-                    'content-type': 'application/json',
-                    authorization: 
-                        `Bearer ${token}`
-                }
-            })
-        .then(res => res.json())
-        .then(resData => (setCategories(resData)))
-    }
-
     useEffect(() => {
-        if (token && online) {
-            getTags()
-            getCats()
-        }
-    }, [])
+        if (!token || !online) return
+            const getTags = async () => {
+                const res = await fetch(`http://api.notevault.pro/api/v1/tags`, {
+                    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` }
+                })
+                const data = await res.json()
+                setTags(data)
+            }
 
-    const categoryRef = useRef(null)
-    const tagRef = useRef(null)
-
-    const categoryHeadRef  = useRef(null)
-    const tagHeadRef = useRef(null)
-
-    const [categoryMaxWidth, setCategoryMaxWidth] = useState('0px')
-    const [tagMaxWidth, setTagMaxWidth] = useState('0px')
-
-    const {
-        setNotesError, notesError,
-        setAction,
-        setVisibility,
-        animating, setAnimating,
-        notesLoading, setNotesLoading,
-        notesMessage,
-        setClarifyLoading,
-        retryFunction, setRetryFunction
-    } = clarifyStore()
-
-    const {t} = useTranslation()
-
-    //
-
-    // global state that stores the display view of notes
-    const {notesView, setNotesView} = notesViewStore()
-
-    // сonverts values ​​to true or false; for convenience (reducing unnecessary code with tags)
-    const listView = notesView == 'list'
-
-    //
-
-    // state for storing information from search input
-    const [search, setSearch] = useState('')
-
-    //
-
-    // selector open status
-    const [categoryStatus, setCategoryStatus] = useState(false)
-
-    // selector value
-    const [categoryValue, setCategoryValue] = useState(
-        // checks for the presence of an input parameter (if you click on a specific category)
-            location.state?.sort == 'categories'
-        ?
-            location.state.value
-        :
-            'All categories'
-    )
-
-    useEffect(() => {
-        if (categoryHeadRef.current) {
-            const width = categoryHeadRef.current.scrollWidth
-            requestAnimationFrame(() => setCategoryMaxWidth(width))
-        }
-    }, [categoryValue])
+            const getCats = async () => {
+                const res = await fetch(`http://api.notevault.pro/api/v1/categories`, {
+                    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` }
+                })
+                const data = await res.json()
+                setCategories(data)
+            }
+        getTags()
+        getCats()
+    }, [token, online, setTags, setCategories])
 
     // render list of options
     const renderCategories = useMemo(() => 
         categories?.map((element, index) => 
             <div
-                key={index}
+                key={element.id}
                 tabIndex='0'
                 className='select-option'
-                onClick={() => {
-                    setCategoryValue(element)
-                }}
+                onClick={() => setCategory(element)}
                 onKeyDown={(e) => {
                     if (e.key == 'Enter') {
-                        setCategoryValue(element)
+                        setCategory(element)
                         setCategoryStatus(false)
                     }
                 }}
             >
                 {t(element.name)}
             </div>
-        ), 
-        [categories, t, setCategoryValue, setNotesLoading, setCategoryStatus]
-    )
-
-    // selector open status
-    const [tagStatus, setTagStatus] = useState(false)
-
-    // selector value
-    const [tagValue, setTagValue] = useState(
-        // checks for the presence of an input parameter (if you click on a specific tag)
-            location.state?.sort == 'tags'
-        ?
-            location.state.value
-        :
-            'All tags'
-    )
-
-    useEffect(() => {
-        if (tagHeadRef.current) {
-            const width = tagHeadRef.current.scrollWidth
-            requestAnimationFrame(() => setTagMaxWidth(width))
-        }
-    }, [tagValue])
+        ), [categories])
 
     // render list of options
     const renderTags = useMemo(() => 
         tags?.map((element, index) =>
             <div
-                key={index}
+                key={element.id}
                 tabIndex='0'
                 className='select-option'
-                onClick={() => {
-                    setTagValue(element)
-                }}
+                onClick={() => setTag(element)}
             >
                 #{t(element.name)}
             </div>
-        ), 
-        [tags, t, setTagValue, setNotesLoading]
-    )
+    ), [tags, t, setTag])
 
     //
-
-    // refs for correctly setting focus on the checkbox imitation
-    const gridRef = useRef(null)
-    const listRef = useRef(null)
-
-    //
-    
-    // ref is used to prevent a bug where focus is set on first load
-    const firstRender = useRef(true)
 
     // array view monitored for changes, then the focus is set to the selected option
     useEffect(() => {
@@ -219,20 +147,7 @@ function Notes() {
 
     //
 
-    const table = useMemo(() => ['title & description', 'categories, tags, date & deletion and archiving'], [])
-
-    const renderTable = useMemo(() => 
-        table.map((element, index) => 
-            <div
-                key={index}
-            >
-                {t(element)}
-            </div>
-        ), 
-        [table, t]
-    )
-
-    const openAnim = (action) => {
+    const openAnim = useCallback((action) => {
         if (animating == true) {
             return false
         }
@@ -248,7 +163,7 @@ function Notes() {
         setTimeout(() => {
             setAnimating(false)
         }, 300)
-    }
+    }, [animating, setAnimating, setAction, setRetryFunction, setClarifyLoading, setVisibility])
 
     const categorySelect = useSelect({
         disabled: notesError,
@@ -316,12 +231,12 @@ function Notes() {
     },{
         key: 'mod+1, alt+1, shift+1',
         trigger: () => setNotesView('list')
-    }], [focusSearch, searchFocus, categoryStatus, tagStatus, setCategoryStatus, setTagStatus, setNotesView])
+    }], [focusSearch, searchFocus, setNotesView])
 
     const renderHotkeys = useMemo(() => 
         hotkeys.map((element, index) =>
             <Hotkey
-                key={index}
+                key={element.key}
                 keys={element.key}
                 onTrigger={element.trigger}
                 enabled={element.enabled}
@@ -358,7 +273,7 @@ function Notes() {
                     </SlideLeft>
                     {/* displayed during saving */}
                     <SlideLeft
-                        visibility={notes.some(item => item?.saving == true)}
+                        visibility={notes?.some(item => item?.saving == true)}
                     >
                         <FontAwesomeIcon
                             className={`loading-save-icon ${retryFunction == 'delete' ? '--trash' : null}`}
@@ -367,7 +282,7 @@ function Notes() {
                     </SlideLeft>
                     {/* displayed only if the server returned an error */}
                     <SlideLeft
-                        visibility={notesError || notes.some(item => item?.error == true)}
+                        visibility={notesError || notes?.some(item => item?.error == true)}
                     >
                         <FontAwesomeIcon
                             className='loading-error-icon'
@@ -449,7 +364,7 @@ function Notes() {
                     className={`select-element ${(notesError) && '--disabled'}`}
                     tabIndex='0'
                     ref={categoryRef}
-                    style={{maxWidth: categoryMaxWidth}}
+                    // style={{maxWidth: categoryMaxWidth}}
                     onClick={(!online && !offlineMode) ? undefined : categorySelect.handleToggle}
                     onBlur={categorySelect.handleBlur}
                     onFocus={(!online && !offlineMode) ? undefined : categorySelect.handleFocus}
@@ -459,19 +374,19 @@ function Notes() {
                         className='select-head'
                         ref={categoryHeadRef}
                     >
-                        {categoryValue?.name || t('All categories')}
+                        {category?.name || t('All categories')}
                     </p>
                     <div
                         className='select-buttons'
                     >
                         <SlideLeft
-                            visibility={categoryValue != 'All categories'}
+                            visibility={category != 'All categories'}
                         >
                             <FontAwesomeIcon
                                 className='cancel-select'
                                 icon={faXmark}
                                 onClick={() => {
-                                    setCategoryValue('All categories')
+                                    setCategory('All categories')
                                 }}
                             />
                         </SlideLeft>
@@ -504,7 +419,7 @@ function Notes() {
                     className={`select-element --mobile ${(notesError) && '--disabled'}`}
                     tabIndex='0'
                     ref={tagRef}
-                    style={{maxWidth: tagMaxWidth}}
+                    // style={{maxWidth: tagMaxWidth}}
                     onClick={tagSelect.handleToggle}
                     onBlur={tagSelect.handleBlur}
                     onFocus={tagSelect.handleFocus}
@@ -514,7 +429,7 @@ function Notes() {
                         className='select-head'
                         ref={tagHeadRef}
                     >
-                        {tagValue?.name ? `#${t(tagValue.name)}` : t('All tags')}
+                        {tag?.name ? `#${t(tag.name)}` : t('All tags')}
                     </p>
                     <div
                         className='select-buttons'
@@ -522,12 +437,12 @@ function Notes() {
                         <FontAwesomeIcon
                             className='cancel-select'
                             icon={faXmark}
-                            tabIndex={tagValue != 'All tags' ? '0' : '1'}
+                            tabIndex={tag != 'All tags' ? '0' : '1'}
                             onClick={() => {
-                                setTagValue('All tags')
+                                setTag('All tags')
                             }}
                             style={{
-                                '--opacity': tagValue != 'All tags' ? 1 : 0
+                                '--opacity': tag != 'All tags' ? 1 : 0
                             }}
                         />
                         <FontAwesomeIcon
@@ -578,27 +493,8 @@ function Notes() {
                     />
                 </label>
             </div>
-            {/* table */}
-            <div>
-                <SlideDown
-                    visibility={listView}
-                >
-                    <div
-                        className='notes-table'
-                    >
-                        {renderTable}
-                    </div>
-                </SlideDown>
-            </div>
             {/* list */}
-            <NotesList
-                setCategory={setCategoryValue}
-                setTag={setTagValue}
-                category={categoryValue}
-                tag={tagValue}
-                search={search}
-                setSearch={setSearch}
-            />
+            <NotesList/>
             {renderHotkeys}
         </div>
     )

@@ -76,6 +76,7 @@ a {
 }
 
 .nav-logo {
+    text-wrap: nowrap;
     display: flex;
     border: 2px solid transparent;
     padding: 15px 20px 0px;
@@ -146,6 +147,7 @@ a {
 }
 
 .nav-links {
+    cursor: default;
     position: relative;
     gap: 0.5vw;
     display: flex;
@@ -223,6 +225,11 @@ a {
     outline: none;
     border: 2px solid #213506;
     background-color: #151515;
+}
+
+.nav-link:has(input[type='radio']:checked) {
+    cursor: default;
+    pointer-events: none;
 }
 
 .link-label {

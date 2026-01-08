@@ -178,7 +178,7 @@ function authLogic() {
     // 
     const texts = {
         register: {
-            title: 'welcome to the notes app',
+            title: 'welcome to the Note Vault',
             desc: 'register to start using notes',
             button: 'register',
             google: 'register using Google',

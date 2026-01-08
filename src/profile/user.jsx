@@ -245,7 +245,8 @@ function User() {
                         {t('cancel')}
                     </button>
                 </div>
-            </SlideDown>  
+            </SlideDown>
+            {/*
             <SlideDown
                 visibility={!verifed}
             >
@@ -275,6 +276,7 @@ function User() {
                     {t("Verification link has been sent to your email address")}
                 </span>
             </SlideDown>
+            */}
         </form>
     )}
     

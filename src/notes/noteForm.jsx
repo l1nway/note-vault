@@ -1,6 +1,6 @@
 
 import {useTranslation} from 'react-i18next'
-import {useMemo} from 'react'
+import {useMemo, useCallback} from 'react'
 
 import MDEditor from '@uiw/react-md-editor'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -15,15 +15,14 @@ import {appStore} from '../store'
 import {apiStore} from '../store'
 
 function NoteForm({state, actions, refs}) {
+    const {t} = useTranslation()
     
     const online = apiStore(state => state.online)
-
-    const {t} = useTranslation()
+    const categories = appStore(state => state.categories)
+    const tags = appStore(state => state.tags)
 
     const {loading, errors, note, visibility} = state
-    const {setVisibility, selectTag, markdownToggle, retryLoad, setNote, setErrors} = actions
-
-    const {categories, tags} = appStore()
+    const {setVisibility, selectTag, markdownToggle, retryLoad, setNote, setErrors, setTextareaFocus} = actions
 
     const {inputRef, selectRef, tagRef, markdownRef} = refs
 
@@ -66,16 +65,20 @@ function NoteForm({state, actions, refs}) {
     )
 
     const catsDisabled = useMemo(
-        () => (categories?.length ?? 0) == 0 || loading,
+        () => (categories?.length ?? 0) == 0 || loading || errors.categories,
         [categories, loading]
     )
+
+    const setCategoryOpen = useCallback(() => {
+        setVisibility(prev => ({...prev, category: !prev.category}))
+    }, [setVisibility])
     
     const categorySelect = useSelect({
         disabled: catsDisabled,
         isOpen: visibility.category,
-        setIsOpen: () => setVisibility(prev => ({...prev, category: !prev.category}))
+        setIsOpen: setCategoryOpen
     })
-        
+
     // display list of tags
     const renderTags = useMemo(() => 
         tags?.map((element, index) => 
@@ -114,12 +117,12 @@ function NoteForm({state, actions, refs}) {
                         {t('Note name')}
                     </span>
                     <SlideLeft
-                        visibility={errors.global}
+                        visibility={errors.global || errors.input}
                     >
                         <FontAwesomeIcon
                             className='newnote-loading-error'
                             icon={faTriangleExclamation}
-                            onClick={() => online && retryLoad()}
+                            onClick={() => {(online && errors.global) && retryLoad()}}
                             tabIndex='0'
                         />
                     </SlideLeft>
@@ -167,7 +170,7 @@ function NoteForm({state, actions, refs}) {
                     <span
                         className='newnote-input-error'
                     >
-                        {t('Field cannot be empty')}
+                        {t(errors.inputMessage)}
                     </span>
                 </SlideDown>
             </label>
@@ -260,7 +263,6 @@ function NoteForm({state, actions, refs}) {
                     >
                         <div
                             className='newnote-select-list'
-                            onClick={(e) => e.stopPropagation()}
                             style={{
                                 '--select-border': visibility.category ? '0.1vw solid #2a2f38' : '0.1vw solid transparent',
                                 '--select-background': visibility.category ? '#1f1f1f' : 'transparent',
@@ -322,6 +324,7 @@ function NoteForm({state, actions, refs}) {
                 >
                     <div
                         className='newnote-tags'
+                        tabIndex={-1}
                     >
                         {renderTags}
                     </div>
@@ -420,6 +423,8 @@ function NoteForm({state, actions, refs}) {
                                         content: e.target.value
                                     }))}
                                 disabled={loading || errors.global}
+                                onFocus={() => setTextareaFocus(true)}
+                                onBlur={() => setTextareaFocus(true)}
                             />
                         </div>) : 
                     (
@@ -437,6 +442,8 @@ function NoteForm({state, actions, refs}) {
                                     hideToolbar={false}
                                     className={`newnote-md-editor ${visibility.markdown ? 'visible' : null}`}
                                     style={{height: '100%'}}
+                                    onFocus={() => setTextareaFocus(true)}
+                                    onBlur={() => setTextareaFocus(true)}
                                 />
                         </div>
                     )}
